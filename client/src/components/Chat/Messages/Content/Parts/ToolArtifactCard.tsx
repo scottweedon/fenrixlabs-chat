@@ -1,5 +1,5 @@
 import { memo, useEffect, useId, useLayoutEffect, useRef } from 'react';
-import { Download } from 'lucide-react';
+import { Download, ExternalLink } from 'lucide-react';
 import {
   useRecoilCallback,
   useRecoilState,
@@ -20,6 +20,35 @@ import store from '~/store';
 interface ToolArtifactCardProps {
   attachment: TAttachment;
   artifact: Artifact;
+}
+
+function sameArtifactWorkspace(left?: Artifact['files'], right?: Artifact['files']): boolean {
+  const leftKeys = Object.keys(left ?? {});
+  const rightKeys = Object.keys(right ?? {});
+  if (leftKeys.length !== rightKeys.length) {
+    return false;
+  }
+  for (const key of leftKeys) {
+    if (left?.[key] !== right?.[key]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function consumeArtifactOpenRequest(artifactId: string): boolean {
+  if (typeof window === 'undefined') {
+    return false;
+  }
+
+  const url = new URL(window.location.href);
+  if (url.searchParams.get('artifactId') !== artifactId) {
+    return false;
+  }
+
+  url.searchParams.delete('artifactId');
+  window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${url.hash}`);
+  return true;
 }
 
 /**
@@ -146,7 +175,9 @@ const ToolArtifactCard = memo(({ attachment, artifact }: ToolArtifactCardProps) 
       existingEntry != null &&
       existingEntry.content === artifact.content &&
       existingEntry.type === artifact.type &&
-      existingEntry.title === artifact.title
+      existingEntry.title === artifact.title &&
+      existingEntry.activeFile === artifact.activeFile &&
+      sameArtifactWorkspace(existingEntry.files, artifact.files)
     ) {
       return;
     }
@@ -154,7 +185,8 @@ const ToolArtifactCard = memo(({ attachment, artifact }: ToolArtifactCardProps) 
   }, [artifact, existingEntry, isMyClaim, setArtifacts]);
 
   useEffect(() => {
-    if (isCodeOnlyArtifact(artifact.type)) {
+    const requestedFromUrl = consumeArtifactOpenRequest(artifact.id);
+    if (isCodeOnlyArtifact(artifact.type) && !requestedFromUrl) {
       // Source-code artifacts (`.py`, `.js`, `.cpp`, `Dockerfile`, …) are
       // click-to-open only. They're typically supporting scripts the
       // agent emits alongside a richer deliverable; auto-opening them
@@ -179,7 +211,7 @@ const ToolArtifactCard = memo(({ attachment, artifact }: ToolArtifactCardProps) 
      * path, so the panel stays closed on navigation — no jarring
      * auto-open just from scrolling past an old artifact. */
     const justResolved = fileId ? consumeJustResolved(fileId) : false;
-    if (!mountedDuringStreamRef.current && !justResolved) {
+    if (!mountedDuringStreamRef.current && !justResolved && !requestedFromUrl) {
       return;
     }
     // Streaming arrival or just-resolved preview: focus the new artifact
@@ -209,6 +241,16 @@ const ToolArtifactCard = memo(({ attachment, artifact }: ToolArtifactCardProps) 
     // needs to focus + reveal the panel for users who have closed it.
     setCurrentArtifactId(artifact.id);
     setVisible(true);
+  };
+
+  const handleOpenInNewTab = () => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const url = new URL(window.location.href);
+    url.searchParams.set('artifactId', artifact.id);
+    window.open(url.toString(), '_blank', 'noopener,noreferrer');
   };
 
   // Another card with the same artifact id has the active claim — render
@@ -260,11 +302,24 @@ const ToolArtifactCard = memo(({ attachment, artifact }: ToolArtifactCardProps) 
         title={localize('com_ui_download')}
         className={cn(
           'flex shrink-0 items-center justify-center px-3 transition-colors duration-200',
-          'rounded-r-xl bg-surface-tertiary text-text-secondary hover:bg-surface-hover hover:text-text-primary',
+          'bg-surface-tertiary text-text-secondary hover:bg-surface-hover hover:text-text-primary',
           'border-l border-border-light focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-heavy',
         )}
       >
         <Download className="size-4" aria-hidden="true" />
+      </button>
+      <button
+        type="button"
+        onClick={handleOpenInNewTab}
+        aria-label={`${localize('com_ui_open_preview_new_tab')} ${visibleFilename}`}
+        title={localize('com_ui_open_preview_new_tab')}
+        className={cn(
+          'flex shrink-0 items-center justify-center px-3 transition-colors duration-200',
+          'rounded-r-xl bg-surface-tertiary text-text-secondary hover:bg-surface-hover hover:text-text-primary',
+          'border-l border-border-light focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-heavy',
+        )}
+      >
+        <ExternalLink className="size-4" aria-hidden="true" />
       </button>
     </div>
   );

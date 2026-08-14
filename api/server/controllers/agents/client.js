@@ -113,6 +113,7 @@ const {
   AgentCapabilities,
   isAgentsEndpoint,
   isEphemeralAgentId,
+  splitMCPToolKey,
   removeNullishValues,
   DEFAULT_MEMORY_MAX_INPUT_TOKENS,
 } = require('librechat-data-provider');
@@ -128,6 +129,32 @@ const db = require('~/models');
 const loadAgent = (params) => loadAgentFn(params, { getAgent: db.getAgent, getMCPServerTools });
 
 const MEMORY_INPUT_CHARS_PER_TOKEN = 8;
+
+/** Deployment-specific bridge for the `artifact-filesystem` MCP server (see
+ *  scripts/artifact-filesystem-server.mjs) — not a general LibreChat feature. */
+const ARTIFACT_FILESYSTEM_SERVER = 'artifact-filesystem';
+const ARTIFACT_FILESYSTEM_TOOLS = new Set(['create_artifact_bundle', 'write_artifact_file']);
+/** Matches the shortest span from a `:::artifact{...}` opening line to the
+ *  next line that is exactly `:::`, mirroring the exact shape this repo's
+ *  `artifact-filesystem` MCP tool always emits (see `buildArtifactDirective`
+ *  in scripts/artifact-filesystem-server.mjs). */
+const ARTIFACT_DIRECTIVE_PATTERN = /:::artifact\{[^\n}]*\}\n[\s\S]*?\n:::(?=\r?\n|$)/;
+
+function isArtifactFilesystemBundleTool(toolCallName) {
+  if (typeof toolCallName !== 'string') {
+    return false;
+  }
+  const [toolName, serverName] = splitMCPToolKey(toolCallName);
+  return serverName === ARTIFACT_FILESYSTEM_SERVER && ARTIFACT_FILESYSTEM_TOOLS.has(toolName);
+}
+
+function extractArtifactDirective(text) {
+  if (typeof text !== 'string') {
+    return null;
+  }
+  const match = text.match(ARTIFACT_DIRECTIVE_PATTERN);
+  return match ? match[0] : null;
+}
 
 class AgentClient extends BaseClient {
   constructor(options = {}) {
@@ -282,6 +309,44 @@ class AgentClient extends BaseClient {
       }
     }
     buffer.clear();
+  }
+
+  /**
+   * The `artifact-filesystem` MCP server's `create_artifact_bundle`/
+   * `write_artifact_file` tools return a ready-to-copy `:::artifact{...}`
+   * directive in their text output (see
+   * scripts/artifact-filesystem-server.mjs) so the panel can open without
+   * relying on the model to construct one from system-prompt rules — local
+   * models were observed calling the tool, writing the files, and then
+   * summarizing in prose without ever reproducing the directive themselves.
+   * Runs once per message save (from `sendCompletion`'s finally, mirroring
+   * `finalizeSubagentContent`) and splices the directive in as a real text
+   * part immediately after its tool_call, so it renders through the normal
+   * markdown/remark-directive pipeline regardless of what the model wrote.
+   * Iterates backward so each splice doesn't invalidate earlier indices.
+   */
+  injectArtifactFilesystemDirectives() {
+    if (!Array.isArray(this.contentParts)) {
+      return;
+    }
+    for (let i = this.contentParts.length - 1; i >= 0; i--) {
+      const part = this.contentParts[i];
+      if (part?.type !== ContentTypes.TOOL_CALL) continue;
+      const toolCall = part[ContentTypes.TOOL_CALL];
+      if (!toolCall || toolCall.injectedArtifactDirective) continue;
+      if (!isArtifactFilesystemBundleTool(toolCall.name)) continue;
+      if (typeof toolCall.output !== 'string') continue;
+      try {
+        const directive = extractArtifactDirective(toolCall.output);
+        if (!directive) continue;
+        toolCall.injectedArtifactDirective = true;
+        this.contentParts.splice(i + 1, 0, { type: ContentTypes.TEXT, text: directive });
+      } catch (err) {
+        logger.warn(
+          `[AgentClient] Failed to inject artifact directive for tool_call ${toolCall.id}: ${err?.message ?? err}`,
+        );
+      }
+    }
   }
 
   /**
@@ -2708,6 +2773,7 @@ class AgentClient extends BaseClient {
       }
 
       this.finalizeSubagentContent();
+      this.injectArtifactFilesystemDirectives();
       await this.settleActivityLabels();
 
       /** Flush subagent usage emits the sink fired without awaiting, so their
@@ -3014,6 +3080,7 @@ class AgentClient extends BaseClient {
       }
 
       this.finalizeSubagentContent();
+      this.injectArtifactFilesystemDirectives();
       await this.settleActivityLabels();
 
       if (this.pendingSubagentEmits.length > 0) {

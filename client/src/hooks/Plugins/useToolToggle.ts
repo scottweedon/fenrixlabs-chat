@@ -16,6 +16,7 @@ interface UseToolToggleOptions {
   storageContextKey?: string;
   toolKey: string;
   localStorageKey: LocalStorageKeys;
+  defaultValue?: ToolValue;
   isAuthenticated?: boolean;
   setIsDialogOpen?: (open: boolean) => void;
   /** Options for auth verification */
@@ -30,6 +31,7 @@ export function useToolToggle({
   storageContextKey,
   toolKey: _toolKey,
   localStorageKey,
+  defaultValue,
   isAuthenticated: externalIsAuthenticated,
   setIsDialogOpen,
   authConfig,
@@ -76,6 +78,28 @@ export function useToolToggle({
       setTimestamp(storageKey);
     }
   }, [ephemeralAgent, toolKey, storageKey]);
+
+  useEffect(() => {
+    if (defaultValue === undefined) {
+      return;
+    }
+    if (ephemeralAgent?.[toolKey] !== undefined) {
+      return;
+    }
+    if (!isAuthenticated) {
+      return;
+    }
+
+    setEphemeralAgent((prev) => {
+      if (prev?.[toolKey] !== undefined) {
+        return prev;
+      }
+      return {
+        ...(prev || {}),
+        [toolKey]: defaultValue,
+      };
+    });
+  }, [defaultValue, ephemeralAgent, isAuthenticated, setEphemeralAgent, toolKey]);
 
   /** Admin-configured default: pin this tool when its key is listed in `defaultPinnedTools`.
    *  Only seeds the initial state — a user's stored pin preference always takes precedence. */

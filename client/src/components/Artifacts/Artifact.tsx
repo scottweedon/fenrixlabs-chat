@@ -1,13 +1,15 @@
 import React, { useEffect, useCallback, useRef, useState } from 'react';
 import throttle from 'lodash/throttle';
 import { visit } from 'unist-util-visit';
-import { useSetRecoilState } from 'recoil';
+import { useSetRecoilState, useRecoilCallback } from 'recoil';
 import { useLocation } from 'react-router-dom';
 import type { Pluggable } from 'unified';
 import type { Artifact } from '~/common';
-import { useMessageContext, useArtifactContext } from '~/Providers';
+import { useMessageContext } from '~/Providers/MessageContext';
+import { useArtifactContext } from '~/Providers/ArtifactContext';
 import { logger, extractContent, isArtifactRoute } from '~/utils';
-import { artifactsState } from '~/store/artifacts';
+import { artifactsState, currentArtifactId, artifactsVisibility } from '~/store/artifacts';
+import families from '~/store/families';
 import ArtifactButton from './ArtifactButton';
 
 export const artifactPlugin: Pluggable = () => {
@@ -52,7 +54,28 @@ export function Artifact({
   const artifactIndex = useRef(getNextIndex(false)).current;
 
   const setArtifacts = useSetRecoilState(artifactsState);
+  const setCurrentArtifactId = useSetRecoilState(currentArtifactId);
+  const setArtifactsVisible = useSetRecoilState(artifactsVisibility);
   const [artifact, setArtifact] = useState<Artifact | null>(null);
+
+  /**
+   * Captured at first render via a non-subscribing snapshot read so this
+   * component doesn't re-render every time `isSubmittingFamily(0)` flips.
+   * Mirrors `ToolArtifactCard`'s pattern: a `:::artifact` directive that
+   * closes while the response is still streaming is a fresh arrival and
+   * should steal panel focus; one encountered on history load/navigation
+   * (isSubmitting already false) must not auto-open the panel.
+   */
+  const readInitialIsSubmitting = useRecoilCallback(
+    ({ snapshot }) =>
+      () =>
+        snapshot.getLoadable(families.isSubmittingFamily(0)).valueMaybe() ?? false,
+    [],
+  );
+  const mountedDuringStreamRef = useRef<boolean | null>(null);
+  if (mountedDuringStreamRef.current === null) {
+    mountedDuringStreamRef.current = readInitialIsSubmitting();
+  }
 
   const throttledUpdateRef = useRef(
     throttle((updateFn: () => void) => {
@@ -123,6 +146,38 @@ export function Artifact({
     resetCounter();
     updateArtifact();
   }, [updateArtifact, resetCounter]);
+
+  /**
+   * Self-bootstrap the side panel for a freshly streamed directive.
+   * `useArtifacts` (the hook that owns auto-open/auto-focus) only runs
+   * once `<Artifacts />` is mounted, and `Presentation` only mounts it
+   * once `currentArtifactId != null` — a circular gate that leaves the
+   * very first `:::artifact` of a session with no path to ever open the
+   * panel. Mirroring `ToolArtifactCard`'s mount effect breaks the cycle:
+   * a directive that closes mid-stream claims focus and forces
+   * visibility, exactly like a code-execution artifact arriving via SSE.
+   * Unlike the tool-artifact pipeline, every directive type (code
+   * included) auto-opens here — the model creates a `:::artifact` block
+   * specifically to be shown in the panel, so there's no "helper script"
+   * carve-out. History mounts (isSubmitting already false when this
+   * component first rendered) never steal focus.
+   */
+  useEffect(() => {
+    if (artifact?.id == null) {
+      return;
+    }
+    if (!mountedDuringStreamRef.current) {
+      return;
+    }
+    // Only auto-open for artifacts actually written to global `artifactsState`
+    // — `updateArtifact` skips that write off the artifact routes, in which
+    // case there's nothing in the panel's data source to focus.
+    if (!isArtifactRoute(location.pathname)) {
+      return;
+    }
+    setCurrentArtifactId(artifact.id);
+    setArtifactsVisible(true);
+  }, [artifact?.id, location.pathname, setCurrentArtifactId, setArtifactsVisible]);
 
   return <ArtifactButton artifact={artifact} />;
 }

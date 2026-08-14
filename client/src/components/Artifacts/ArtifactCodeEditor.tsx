@@ -102,13 +102,16 @@ export const ArtifactCodeEditor = function ArtifactCodeEditor({
   artifact,
   monacoRef,
   readOnly: externalReadOnly,
+  contentKey,
 }: {
   artifact: Artifact;
   monacoRef: React.MutableRefObject<editor.IStandaloneCodeEditor | null>;
   readOnly?: boolean;
+  contentKey?: string;
 }) {
   const { isSubmitting } = useArtifactsContext();
-  const readOnly = (externalReadOnly ?? false) || isSubmitting;
+  const artifactTarget = getArtifactEditTarget(artifact);
+  const readOnly = (externalReadOnly ?? false) || isSubmitting || artifactTarget == null;
   const { setCurrentCode } = useCodeState();
   const [currentUpdate, setCurrentUpdate] = useState<string | null>(null);
   const { isMutating, setIsMutating } = useMutationState();
@@ -246,7 +249,7 @@ export const ArtifactCodeEditor = function ArtifactCodeEditor({
 
   useEffect(() => {
     return () => debouncedMutation.cancel();
-  }, [artifact.id, debouncedMutation]);
+  }, [artifact.id, contentKey, debouncedMutation]);
 
   /**
    * Streaming: use model.applyEdits() to append new content.
@@ -293,10 +296,11 @@ export const ArtifactCodeEditor = function ArtifactCodeEditor({
   }, [artifact.content, readOnly, monacoRef]);
 
   useEffect(() => {
-    if (artifact.id === prevArtifactId.current) {
+    const contentIdentity = `${artifact.id}:${contentKey ?? artifact.title ?? ''}`;
+    if (contentIdentity === prevArtifactId.current) {
       return;
     }
-    prevArtifactId.current = artifact.id;
+    prevArtifactId.current = contentIdentity;
     pendingUpdateRef.current = null;
     setFailedContent(null);
     prevContentRef.current = artifact.content ?? '';
@@ -304,7 +308,7 @@ export const ArtifactCodeEditor = function ArtifactCodeEditor({
     if (ed && artifact.content != null) {
       ed.getModel()?.setValue(artifact.content);
     }
-  }, [artifact.id, artifact.content, monacoRef]);
+  }, [artifact.id, artifact.content, contentKey, artifact.title, monacoRef]);
 
   useEffect(() => {
     if (prevReadOnly.current && !readOnly && artifact.content != null) {
@@ -428,7 +432,7 @@ export const ArtifactCodeEditor = function ArtifactCodeEditor({
     [readOnly],
   );
 
-  if (!artifact.content) {
+  if (artifact.content == null) {
     return null;
   }
 

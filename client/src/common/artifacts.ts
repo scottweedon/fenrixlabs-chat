@@ -18,6 +18,13 @@ export interface ArtifactDownload {
   user?: string;
 }
 
+export interface ArtifactWorkspaceFile {
+  path: string;
+  file_id?: string;
+  language?: string;
+  title?: string;
+}
+
 export interface Artifact {
   id: string;
   lastUpdateTime: number;
@@ -29,6 +36,11 @@ export interface Artifact {
   title?: string;
   type?: string;
   download?: ArtifactDownload;
+  files?: Partial<{
+    [x: string]: string | undefined;
+  }>;
+  activeFile?: string;
+  workspaceFiles?: ArtifactWorkspaceFile[];
 }
 
 export type ArtifactFiles =

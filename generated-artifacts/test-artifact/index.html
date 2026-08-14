@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Artifact</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to Test Artifact</h1>
+        <p>This is a standalone HTML artifact created dynamically.</p>
+        <button id="toggle-btn">Toggle Theme</button>
+        <div id="message" class="hidden">Hello from the generated artifact!</div>
+    </div>
+    <script>
+        document.getElementById('toggle-btn').addEventListener('click', function() {
+            const body = document.body;
+            body.classList.toggle('dark-mode');
+            
+            const msg = document.getElementById('message');
+            msg.classList.toggle('hidden');
+        });
+    </script>
+</body>
+</html>

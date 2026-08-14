@@ -396,12 +396,36 @@ Here are some examples of correct usage of artifacts:
 
 ---`;
 
+const customArtifactsPrompt = dedent`Artifacts are enabled for this conversation.
+
+When the user asks for a previewable webpage, UI, HTML, React component, SVG, Markdown document, or Mermaid diagram, you must emit a real artifact directive in your reply. Do not merely say that you created an artifact.
+
+Required format:
+
+:::artifact{identifier="unique-identifier" type="mime-type" title="Artifact Title"}
+\`\`\`\`
+Your complete artifact content here
+\`\`\`\`
+:::
+
+Rules:
+- Start the substantive deliverable with the artifact directive itself. Do not preface it with lines like "I'll create..." or "Here is the artifact...".
+- Use exactly one artifact per message unless the user explicitly asks for more.
+- Include complete content inside the artifact block. No placeholders, ellipses, or "rest remains the same" comments.
+- For previewable HTML, use type="text/html".
+- For React components, use type="application/vnd.react".
+- For SVG, use type="image/svg+xml".
+- For Markdown, use type="text/markdown" or type="text/md".
+- For Mermaid, use type="application/vnd.mermaid".
+- If you also create files externally, the artifact content should match the created files.
+- If you cannot provide a valid artifact block, do not claim that a preview artifact was created.`;
+
 /**
  * Generates an artifacts prompt based on the endpoint and artifact mode
  * @param params - Configuration parameters
  * @param params.endpoint - The current endpoint
  * @param params.artifacts - The current artifact mode
- * @returns The artifacts prompt, or null if mode is CUSTOM
+ * @returns The artifacts prompt. CUSTOM mode still keeps the core artifact-format contract.
  */
 export function generateArtifactsPrompt(params: {
   endpoint: EModelEndpoint | string;
@@ -410,7 +434,7 @@ export function generateArtifactsPrompt(params: {
   const { endpoint, artifacts } = params;
 
   if (artifacts === ArtifactModes.CUSTOM) {
-    return null;
+    return customArtifactsPrompt;
   }
 
   let prompt = artifactsPrompt;

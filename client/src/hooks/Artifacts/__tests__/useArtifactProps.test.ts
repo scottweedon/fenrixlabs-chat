@@ -168,6 +168,28 @@ describe('useArtifactProps', () => {
       expect(result.current.fileKey).toBe('App.tsx');
       expect(result.current.template).toBe('react-ts');
     });
+
+    it('prefers workspace files and the selected active file when present', () => {
+      const artifact = createArtifact({
+        type: 'application/vnd.react',
+        activeFile: 'styles.css',
+        files: {
+          'App.tsx': 'export default function App() { return <div className="app">Test</div>; }',
+          'styles.css': '.app { color: red; }',
+        },
+        workspaceFiles: [
+          { path: 'App.tsx', title: 'App.tsx', language: 'tsx' },
+          { path: 'styles.css', title: 'styles.css', language: 'css' },
+        ],
+      });
+
+      const { result } = renderHook(() => useArtifactProps({ artifact }));
+
+      expect(result.current.fileKey).toBe('styles.css');
+      expect(result.current.files['App.tsx']).toContain('function App');
+      expect(result.current.files['styles.css']).toBe('.app { color: red; }');
+      expect(result.current.template).toBe('react-ts');
+    });
   });
 
   describe('html artifacts', () => {

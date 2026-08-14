@@ -127,6 +127,11 @@ const renderWithProbe = (ui: React.ReactElement, opts: { streaming?: boolean } =
 };
 
 describe('Attachment routing for tool artifacts', () => {
+  afterEach(() => {
+    window.history.replaceState(window.history.state, '', '/');
+    jest.restoreAllMocks();
+  });
+
   it('renders an HTML artifact card (panel artifact) and exposes a download control', () => {
     const html = baseAttachment({
       filename: 'index.html',
@@ -670,6 +675,56 @@ describe('ToolArtifactCard click behaviour', () => {
     });
     expect(getSnapshot().currentArtifactId).toBe('tool-artifact-history-click');
     expect(getSnapshot().visibility).toBe(true);
+  });
+
+  it('auto-opens a history-loaded card when the URL requests that artifact id', () => {
+    window.history.replaceState(
+      window.history.state,
+      '',
+      '/c/history-click?artifactId=tool-artifact-history-link',
+    );
+    const html = baseAttachment({
+      file_id: 'history-link',
+      filename: 'linked.html',
+      text: '<h1>linked</h1>',
+    } as Partial<TAttachment>);
+    const { getSnapshot } = renderWithProbe(<Attachment attachment={html} />, {
+      streaming: false,
+    });
+
+    expect(getSnapshot().currentArtifactId).toBe('tool-artifact-history-link');
+    expect(getSnapshot().visibility).toBe(true);
+    expect(new URLSearchParams(window.location.search).get('artifactId')).toBeNull();
+  });
+
+  it('opens a new tab with the artifact id in the URL when the preview button is clicked', () => {
+    window.history.replaceState(
+      window.history.state,
+      '',
+      '/c/new?projectId=abc123abc123abc123abc123',
+    );
+    const openSpy = jest.spyOn(window, 'open').mockImplementation(() => null);
+    const html = baseAttachment({
+      file_id: 'new-tab-link',
+      filename: 'index.html',
+      text: '<h1>hello</h1>',
+    } as Partial<TAttachment>);
+    renderWith(<Attachment attachment={html} />, { streaming: false });
+
+    const button = screen.getByRole('button', {
+      name: /com_ui_open_preview_new_tab.*index\.html/i,
+    });
+    act(() => {
+      fireEvent.click(button);
+    });
+
+    expect(openSpy).toHaveBeenCalledTimes(1);
+    const [url, target, features] = openSpy.mock.calls[0];
+    expect(target).toBe('_blank');
+    expect(features).toBe('noopener,noreferrer');
+    const openedUrl = new URL(String(url));
+    expect(openedUrl.searchParams.get('artifactId')).toBe('tool-artifact-new-tab-link');
+    expect(openedUrl.searchParams.get('projectId')).toBe('abc123abc123abc123abc123');
   });
 });
 

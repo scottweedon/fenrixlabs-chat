@@ -1,0 +1,1 @@
+// Script is embedded in index_html as requested.

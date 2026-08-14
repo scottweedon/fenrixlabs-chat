@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hello World with Color Toggle</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            flex-direction: column;
+            transition: background-color 0.3s ease;
+        }
+
+        h1 {
+            font-size: 5rem;
+            margin-bottom: 2rem;
+            color: #333333; /* Default dark gray */
+            transition: color 0.3s ease;
+        }
+
+        button {
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            border: none;
+            border-radius: 8px;
+            background-color: #007BFF;
+            color: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.1s ease, background-color 0.2s ease;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        /* Class to be added via JS when color changes */
+        .color-theme-2 {
+            background-color: #f0f4f8;
+        }
+        
+        .color-theme-2 h1 {
+            color: #FF5733; /* Burnt orange */
+        }
+    </style>
+</head>
+<body>
+    <h1 id="heading">Hello World</h1>
+    <button onclick="toggleColor()">Change Color</button>
+
+    <script>
+        function toggleColor() {
+            const body = document.body;
+            const heading = document.getElementById('heading');
+            
+            // Logic to switch between two styles
+            if (body.classList.contains('color-theme-2')) {
+                body.classList.remove('color-theme-2');
+                // Reset CSS variables or directly change inline styles if preferred
+                // Here we rely on class, so we just remove the theme class.
+            } else {
+                body.classList.add('color-theme-2');
+            }
+        }
+
+        // Alternatively, a pure JS random color generator approach:
+        /*
+        function toggleColor() {
+             const r = Math.floor(Math.random() * 255);
+             const g = Math.floor(Math.random() * 255);
+             const b = Math.floor(Math.random() * 255);
+             document.getElementById('heading').style.color = `rgb(${r},${g},${b})`;
+        }
+        */
+    </script>
+</body>
+</html>

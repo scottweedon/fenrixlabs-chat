@@ -5,7 +5,7 @@ import type {
   SandpackPredefinedTemplate,
 } from '@codesandbox/sandpack-react';
 import type { TStartupConfig, TAttachment, TFile } from 'librechat-data-provider';
-import type { Artifact } from '~/common';
+import type { Artifact, ArtifactWorkspaceFile } from '~/common';
 
 const artifactFilename = {
   'application/vnd.react': 'App.tsx',
@@ -816,6 +816,87 @@ interface FileToArtifactOptions {
    * which has already classified to pick which renderer to use.
    */
   preClassifiedType?: ToolArtifactType;
+  /**
+   * Other text-bearing files from the same tool run. When present, the
+   * panel can treat the selected file as the active entry inside a
+   * multi-file workspace instead of a standalone blob.
+   */
+  workspaceAttachments?: Array<
+    Partial<
+      Pick<TAttachment, 'messageId'> &
+        Pick<
+          TFile,
+          | 'file_id'
+          | 'filename'
+          | 'filepath'
+          | 'type'
+          | 'text'
+          | 'textFormat'
+          | 'updatedAt'
+          | 'createdAt'
+          | 'source'
+          | 'user'
+        >
+    >
+  >;
+}
+
+const workspacePath = (
+  attachment: Partial<Pick<TFile, 'filename' | 'filepath'>>,
+): string | undefined => attachment.filename ?? attachment.filepath;
+
+function createWorkspaceFile(
+  attachment: Partial<
+    Pick<TFile, 'file_id' | 'filename' | 'filepath' | 'type' | 'text'>
+  >,
+): { path: string; content: string; meta: ArtifactWorkspaceFile } | null {
+  const path = workspacePath(attachment);
+  if (!path || typeof attachment.text !== 'string') {
+    return null;
+  }
+
+  return {
+    path,
+    content: attachment.text,
+    meta: {
+      path,
+      file_id: attachment.file_id,
+      language: languageForFilename(attachment.filename, attachment.type),
+      title: attachment.filename ?? attachment.filepath,
+    },
+  };
+}
+
+function buildArtifactWorkspace(
+  primary: Partial<Pick<TFile, 'file_id' | 'filename' | 'filepath' | 'type' | 'text'>>,
+  attachments: FileToArtifactOptions['workspaceAttachments'],
+): Pick<Artifact, 'files' | 'activeFile' | 'workspaceFiles'> | null {
+  const candidates = attachments?.length ? attachments : [primary];
+  const files: Record<string, string> = {};
+  const workspaceFiles: ArtifactWorkspaceFile[] = [];
+
+  for (const attachment of candidates) {
+    const entry = createWorkspaceFile(attachment);
+    if (!entry) {
+      continue;
+    }
+    files[entry.path] = entry.content;
+    workspaceFiles.push(entry.meta);
+  }
+
+  const activeFile = workspacePath(primary);
+  const resolvedActiveFile =
+    activeFile && files[activeFile] != null ? activeFile : Object.keys(files)[0];
+
+  if (!resolvedActiveFile) {
+    return null;
+  }
+
+  return {
+    files,
+    activeFile: resolvedActiveFile,
+    workspaceFiles,
+  };
 }
 
 /**
@@ -883,6 +964,9 @@ export function fileToArtifact(
     type === TOOL_ARTIFACT_TYPES.CODE
       ? languageForFilename(attachment.filename, attachment.type)
       : undefined;
+  const workspace = buildArtifactWorkspace(attachment, options?.workspaceAttachments);
+  const activeContent =
+    workspace?.activeFile != null ? workspace.files?.[workspace.activeFile] : attachment.text;
   return {
     id: toolArtifactKey(attachment),
     type,
@@ -892,7 +976,7 @@ export function fileToArtifact(
     // panel rather than be replaced by the deferred-extraction
     // placeholder. Only `null`/`undefined` fall through to the
     // placeholder, matching "no extraction has run yet."
-    content: attachment.text ?? options?.placeholder ?? '',
+    content: activeContent ?? options?.placeholder ?? '',
     language,
     messageId: attachment.messageId ?? undefined,
     lastUpdateTime: toLastUpdate(attachment),
@@ -908,6 +992,7 @@ export function fileToArtifact(
       source: attachment.source,
       user: attachment.user,
     },
+    ...(workspace ?? {}),
   };
 }
 

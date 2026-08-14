@@ -463,9 +463,30 @@ interface PanelArtifactProps {
   /** Pre-classified type from the routing decision tree, threaded down so
    * `fileToArtifact` doesn't re-run `detectArtifactTypeFromFile`. */
   type: ToolArtifactType;
+  workspaceAttachments?: TAttachment[];
 }
 
-const PanelArtifact = memo(({ attachment, type }: PanelArtifactProps) => {
+function getWorkspaceAttachments(
+  attachments: TAttachment[],
+  target: TAttachment,
+): TAttachment[] | undefined {
+  const toolCallId = target.toolCallId;
+  const messageId = target.messageId;
+  if (!toolCallId || !messageId) {
+    return undefined;
+  }
+
+  const workspace = attachments.filter((attachment) => {
+    if (attachment.toolCallId !== toolCallId || attachment.messageId !== messageId) {
+      return false;
+    }
+    return typeof (attachment as Partial<TFile>).text === 'string' && !!attachment.filename;
+  });
+
+  return workspace.length > 1 ? workspace : undefined;
+}
+
+const PanelArtifact = memo(({ attachment, type, workspaceAttachments }: PanelArtifactProps) => {
   const localize = useLocalize();
   const placeholder = localize('com_ui_artifact_preview_pending');
   const artifact = useMemo(
@@ -473,8 +494,9 @@ const PanelArtifact = memo(({ attachment, type }: PanelArtifactProps) => {
       fileToArtifact(attachment as TFile & TAttachmentMetadata, {
         placeholder,
         preClassifiedType: type,
+        workspaceAttachments,
       }),
-    [attachment, type, placeholder],
+    [attachment, type, placeholder, workspaceAttachments],
   );
   if (!artifact) {
     return null;
@@ -614,6 +636,7 @@ export function AttachmentGroup({ attachments }: { attachments?: TAttachment[] }
             <PanelArtifact
               attachment={attachment}
               type={type}
+              workspaceAttachments={getWorkspaceAttachments(attachments, attachment)}
               key={renderAttachmentKey('artifact', attachment, index)}
             />
           ))}

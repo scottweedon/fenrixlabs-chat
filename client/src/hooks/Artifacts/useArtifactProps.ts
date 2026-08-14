@@ -19,6 +19,14 @@ export default function useArtifactProps({ artifact }: { artifact: Artifact }) {
   const isDarkMode = isDark(theme);
 
   const [fileKey, files] = useMemo(() => {
+    if (artifact.files && Object.keys(artifact.files).length > 0) {
+      const activeFile =
+        artifact.activeFile && artifact.files[artifact.activeFile] != null
+          ? artifact.activeFile
+          : Object.keys(artifact.files)[0];
+      return [activeFile, artifact.files];
+    }
+
     const key = getKey(artifact.type ?? '', artifact.language);
     const type = artifact.type ?? '';
 
@@ -65,7 +73,15 @@ export default function useArtifactProps({ artifact }: { artifact: Artifact }) {
       [fileKey]: artifact.content,
     });
     return [fileKey, files];
-  }, [artifact.type, artifact.content, artifact.language, artifact.title, isDarkMode]);
+  }, [
+    artifact.type,
+    artifact.content,
+    artifact.language,
+    artifact.title,
+    artifact.files,
+    artifact.activeFile,
+    isDarkMode,
+  ]);
 
   const template = useMemo(
     () => getTemplate(artifact.type ?? '', artifact.language),
