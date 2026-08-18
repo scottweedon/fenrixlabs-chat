@@ -1030,6 +1030,7 @@ export default function useResumableSSE(
     titleHandler,
     syncStepMessage,
     attachmentHandler,
+    artifactFileUpdateHandler,
     resetContentHandler,
     flushPendingDeltas,
   } = useEventHandlers({
@@ -1574,6 +1575,11 @@ export default function useResumableSSE(
               data: data.data,
               submission: currentSubmission as EventSubmission,
             });
+            return;
+          }
+
+          if (data.event === 'artifact_file_update' && data.data) {
+            artifactFileUpdateHandler(data.data);
             return;
           }
 
@@ -3110,6 +3116,7 @@ export default function useResumableSSE(
       finalHandler,
       createdHandler,
       attachmentHandler,
+      artifactFileUpdateHandler,
       titleHandler,
       stepHandler,
       contentHandler,

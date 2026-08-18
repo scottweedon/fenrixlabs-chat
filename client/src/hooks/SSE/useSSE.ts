@@ -58,6 +58,7 @@ export default function useSSE(
     createdHandler,
     titleHandler,
     attachmentHandler,
+    artifactFileUpdateHandler,
     abortConversation,
     cancelPendingDeltaFlush,
     flushPendingDeltas,
@@ -109,6 +110,14 @@ export default function useSSE(
       try {
         const data = JSON.parse(e.data);
         attachmentHandler({ data, submission: submission as EventSubmission });
+      } catch (error) {
+        console.error(error);
+      }
+    });
+
+    sse.addEventListener('artifact_file_update', (e: MessageEvent) => {
+      try {
+        artifactFileUpdateHandler(JSON.parse(e.data));
       } catch (error) {
         console.error(error);
       }

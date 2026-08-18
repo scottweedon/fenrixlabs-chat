@@ -33,6 +33,7 @@ const {
 const {
   createToolEndCallback,
   createAttachmentEmitter,
+  createArtifactFileUpdateEmitter,
   createBackgroundCodeResultHandler,
   getDefaultHandlers,
 } = require('~/server/controllers/agents/callbacks');
@@ -320,6 +321,7 @@ const initializeClient = async ({
     }),
     emitAttachment: createAttachmentEmitter({ res, streamId, jobCreatedAt }),
     recordArtifactFile: (params) => db.upsertArtifactFile(params),
+    emitArtifactFileUpdate: createArtifactFileUpdateEmitter({ res, streamId, jobCreatedAt }),
     ...getSkillToolDeps(),
   };
 

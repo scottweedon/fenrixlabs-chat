@@ -123,6 +123,21 @@ export interface ToolExecuteOptions {
     mode: 'webpage' | 'document';
   }) => Promise<void>;
   /**
+   * Pushes a live SSE update with a file's fresh content after a successful
+   * `artifact-filesystem` write/patch, so the artifacts panel can render the
+   * in-progress build without waiting for the model's final chat reply to
+   * paste a `:::artifact{...}` directive.
+   */
+  emitArtifactFileUpdate?: (params: {
+    relativePath: string;
+    identifier: string;
+    title: string;
+    mimeType: string;
+    content: string;
+    conversationId: string;
+    messageId?: string;
+  }) => void;
+  /**
    * Loads a skill by name with ACL constraint (returns full body for injection).
    *
    * `options.preferModelInvocable` (Phase 6): on a same-name collision,
@@ -2137,6 +2152,79 @@ async function maybeRecordArtifactFile(params: {
     });
   } catch (error) {
     logger.warn('[ON_TOOL_EXECUTE] Failed to record artifact Library entry:', error);
+  }
+}
+
+/** Matches the exact directive shape `buildArtifactDirective` in
+ *  `scripts/artifact-filesystem-server.mjs` produces, to pull the file's raw
+ *  content back out of the tool result's human-readable confirmation text. */
+const ARTIFACT_DIRECTIVE_RE = /:::artifact\{[^}]*\}\r?\n(`{4,})\r?\n([\s\S]*?)\r?\n\1\r?\n:::/;
+
+function extractDirectiveContent(text: string): string | undefined {
+  const match = ARTIFACT_DIRECTIVE_RE.exec(text);
+  return match ? match[2] : undefined;
+}
+
+/**
+ * Opportunistically pushes a live-preview SSE update after a successful
+ * `artifact-filesystem` write/patch, so the artifacts panel can render the
+ * in-progress build without waiting for the model to finish its turn and
+ * paste a directive. Never throws — a live-preview failure must not fail
+ * the user's actual tool call.
+ */
+function maybeEmitArtifactFileUpdate(params: {
+  toolName: string;
+  toolArgs: unknown;
+  toolResultContent: unknown;
+  metadata: unknown;
+  emitArtifactFileUpdate: ToolExecuteOptions['emitArtifactFileUpdate'];
+}): void {
+  const { toolName, toolArgs, toolResultContent, metadata, emitArtifactFileUpdate } = params;
+  if (!emitArtifactFileUpdate || typeof toolResultContent !== 'string') {
+    return;
+  }
+
+  const [rawToolName, serverName] = splitMCPToolKey(toolName);
+  if (serverName !== ARTIFACT_FILESYSTEM_SERVER_NAME || !ARTIFACT_FILESYSTEM_WRITE_TOOLS.has(rawToolName)) {
+    return;
+  }
+
+  const relativePath = extractArtifactRelativePath(rawToolName, toolArgs);
+  if (!relativePath) {
+    return;
+  }
+
+  const mode = inferArtifactFileMode(relativePath);
+  if (!mode) {
+    return;
+  }
+
+  const content = extractDirectiveContent(toolResultContent);
+  if (content == null) {
+    return;
+  }
+
+  const conversationId =
+    ((metadata as Record<string, unknown>)?.thread_id as string | undefined) ?? '';
+  if (!conversationId) {
+    return;
+  }
+
+  const title = titleFromArtifactPath(relativePath);
+  const messageId = (metadata as Record<string, unknown>)?.run_id as string | undefined;
+
+  try {
+    emitArtifactFileUpdate({
+      relativePath,
+      identifier: title,
+      title,
+      mimeType: mode === 'webpage' ? 'text/html' : 'text/markdown',
+      content,
+      conversationId,
+      messageId,
+    });
+  } catch (error) {
+    logger.warn('[ON_TOOL_EXECUTE] Failed to emit artifact live-update:', error);
   }
 }
 
@@ -4435,6 +4523,14 @@ export function createToolExecuteHandler(options: ToolExecuteOptions): EventHand
                       mergedConfigurable,
                       metadata,
                       recordArtifactFile: options.recordArtifactFile,
+                    });
+
+                    maybeEmitArtifactFileUpdate({
+                      toolName: tc.name,
+                      toolArgs: foregroundArgs,
+                      toolResultContent: cleanedContent,
+                      metadata,
+                      emitArtifactFileUpdate: options.emitArtifactFileUpdate,
                     });
 
                     return {

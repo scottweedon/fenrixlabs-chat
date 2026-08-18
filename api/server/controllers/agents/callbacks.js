@@ -1011,6 +1011,35 @@ function createAttachmentEmitter({ res, streamId = null, jobCreatedAt }) {
 }
 
 /**
+ * Creates an emitter that pushes a fresh artifact-file preview to the
+ * current request's live stream (or the resumable job's emitter, in
+ * `streamId` mode). Mirrors `createAttachmentEmitter`'s shape, under its
+ * own `artifact_file_update` SSE event name.
+ *
+ * @param {Object} params
+ * @param {ServerResponse} params.res
+ * @param {string | null} [params.streamId]
+ * @param {number} [params.jobCreatedAt]
+ * @returns {(payload: Object) => void}
+ */
+function createArtifactFileUpdateEmitter({ res, streamId = null, jobCreatedAt }) {
+  return (payload) => {
+    if (!payload || !isStreamWritable(res, streamId)) {
+      return;
+    }
+    if (streamId) {
+      GenerationJobManager.emitChunk(
+        streamId,
+        { event: 'artifact_file_update', data: payload },
+        { expectedCreatedAt: jobCreatedAt },
+      );
+    } else {
+      res.write(`event: artifact_file_update\ndata: ${JSON.stringify(payload)}\n\n`);
+    }
+  };
+}
+
+/**
  * Leading sub-second retries cover the common case of a fast background task
  * settling moments before the dispatch turn finalizes its message row — an
  * immediate follow-up turn should find the attachments already anchored.
@@ -1377,6 +1406,7 @@ module.exports = {
   getDefaultHandlers,
   createToolEndCallback,
   createAttachmentEmitter,
+  createArtifactFileUpdateEmitter,
   createBackgroundCodeResultHandler,
   isStreamWritable,
   markSummarizationUsage,

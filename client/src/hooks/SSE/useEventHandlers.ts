@@ -42,6 +42,7 @@ import {
 import useFocusRegeneratedResponse from '~/hooks/Chat/useFocusRegeneratedResponse';
 import { shouldResetSubagentAtomsOnConversationChange } from './cleanup';
 import useAttachmentHandler from '~/hooks/SSE/useAttachmentHandler';
+import useArtifactFileUpdateHandler from '~/hooks/SSE/useArtifactFileUpdateHandler';
 import useContentHandler from '~/hooks/SSE/useContentHandler';
 import useStepHandler from '~/hooks/SSE/useStepHandler';
 import { useApplyAgentTemplate } from '~/hooks/Agents';
@@ -326,6 +327,7 @@ export default function useEventHandlers({
     onSkillAuthoringComplete,
   });
   const attachmentHandler = useAttachmentHandler(queryClient);
+  const artifactFileUpdateHandler = useArtifactFileUpdateHandler();
 
   /** Wipe the per-subagent Recoil atoms on conversation navigation.
    *  Historical subagent dialogs rehydrate from the persisted
@@ -1138,6 +1140,7 @@ export default function useEventHandlers({
     cancelPendingDeltaFlush,
     flushPendingDeltas,
     attachmentHandler,
+    artifactFileUpdateHandler,
     abortConversation,
     resetContentHandler,
   };
