@@ -187,9 +187,9 @@ function inlineAssets(indexHtml, stylesCss, scriptJs) {
  * exact, pre-filled block for the model to copy verbatim is far more
  * reliable than asking it to construct one from system-prompt rules alone.
  */
-function buildArtifactDirective(identifier, title, html) {
+function buildArtifactDirective(identifier, title, content, mimeType = 'text/html') {
   let fenceLength = 4;
-  const fenceMatches = html.match(/`{4,}/g) ?? [];
+  const fenceMatches = content.match(/`{4,}/g) ?? [];
   for (const match of fenceMatches) {
     fenceLength = Math.max(fenceLength, match.length + 1);
   }
@@ -197,9 +197,9 @@ function buildArtifactDirective(identifier, title, html) {
   const escapedTitle = title.replace(/"/g, '\\"');
 
   return [
-    `:::artifact{identifier="${identifier}" type="text/html" title="${escapedTitle}"}`,
+    `:::artifact{identifier="${identifier}" type="${mimeType}" title="${escapedTitle}"}`,
     fence,
-    html,
+    content,
     fence,
     ':::',
   ].join('\n');
@@ -264,15 +264,40 @@ function createArtifactFilesystemServer(rootArg) {
   );
 
   /**
-   * Shared result-builder for any tool that leaves a full, current copy of an HTML
+   * Shared result-builder for any tool that leaves a full, current copy of a text
    * file's content in hand (write, or a patch that just modified it) — the artifact
    * preview needs the complete content in the chat reply regardless of how the file
-   * was edited on disk, so write and patch both funnel through this.
+   * was edited on disk, so write and patch both funnel through this. HTML gets the
+   * completeness/missing-asset checks; Markdown gets a directive with no HTML-only
+   * checks; anything else falls back to a plain confirmation with no directive.
    */
-  async function buildHtmlWriteResult(relative_path, content, actionLine) {
-    if (!/\.html?$/i.test(relative_path)) {
+  async function buildArtifactWriteResult(relative_path, content, actionLine) {
+    const isHtml = /\.html?$/i.test(relative_path);
+    const isMarkdown = /\.(md|markdown)$/i.test(relative_path);
+
+    if (!isHtml && !isMarkdown) {
       return {
         content: [{ type: 'text', text: actionLine }],
+      };
+    }
+
+    if (isMarkdown) {
+      const identifier = normalizeArtifactName(relative_path.replace(/\.(md|markdown)$/i, '')) || 'artifact';
+      const directive = buildArtifactDirective(identifier, relative_path, content, 'text/markdown');
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: [
+              actionLine,
+              '',
+              'To show the preview panel, copy the following block into your reply to the user EXACTLY as-is (do not summarize or paraphrase it, do not wrap it in another code fence):',
+              '',
+              directive,
+            ].join('\n'),
+          },
+        ],
       };
     }
 
@@ -313,7 +338,7 @@ function createArtifactFilesystemServer(rootArg) {
       await fs.mkdir(path.dirname(target), { recursive: true });
       await fs.writeFile(target, content, 'utf8');
 
-      return buildHtmlWriteResult(relative_path, content, `Wrote ${relative_path}.`);
+      return buildArtifactWriteResult(relative_path, content, `Wrote ${relative_path}.`);
     },
   );
 
@@ -356,7 +381,7 @@ function createArtifactFilesystemServer(rootArg) {
 
       await fs.writeFile(target, updated, 'utf8');
 
-      return buildHtmlWriteResult(
+      return buildArtifactWriteResult(
         relative_path,
         updated,
         `Patched ${relative_path} (lines ${start_line}-${end_line}).`,
@@ -397,7 +422,7 @@ function createArtifactFilesystemServer(rootArg) {
       const updated = original.replace(marker, new_content);
       await fs.writeFile(target, updated, 'utf8');
 
-      return buildHtmlWriteResult(relative_path, updated, `Patched ${relative_path} (replaced marker).`);
+      return buildArtifactWriteResult(relative_path, updated, `Patched ${relative_path} (replaced marker).`);
     },
   );
 

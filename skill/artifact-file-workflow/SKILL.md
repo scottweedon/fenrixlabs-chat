@@ -4,7 +4,10 @@ description: Use this skill when the user wants a previewable HTML/CSS/JS artifa
 allowed-tools:
   - artifacts
 always-apply: false
-user-invocable: true
+# Attached automatically via the fenrix modelSpec's `skills` list and applied
+# only when the live Webpage/Document artifacts toggle is set to Webpage —
+# never meant to be picked manually from the `$` skill popover.
+user-invocable: false
 ---
 
 # Artifact File Workflow

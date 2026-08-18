@@ -459,9 +459,9 @@ Additional rules:
 
 const documentArtifactsPrompt = dedent`Artifacts are enabled for this conversation. The user wants a document/report deliverable, not a webpage or UI.
 
-When the user asks for a report, write-up, summary, proposal, or other substantial text document, you MUST emit a real artifact directive:
+When the user asks for a report, write-up, summary, proposal, or other substantial text document, you MUST emit a real artifact directive — the chat UI only shows a preview panel when your reply contains this exact block:
 
-:::artifact{identifier="artifact-name" type="text/markdown" title="Readable Title"}
+:::artifact{identifier="document-name" type="text/markdown" title="Readable Title"}
 \`\`\`\`
 # Your complete document content here, in Markdown
 \`\`\`\`
@@ -472,8 +472,15 @@ Rules:
 - Structure the document with Markdown headers, sections, and lists as appropriate for a readable report.
 - Start the substantive deliverable with the artifact directive itself. Do not preface it with lines like "I'll write..." or "Here is the document...".
 - Include complete content inside the artifact block. No placeholders, ellipses, or "rest remains the same" comments.
-- Do NOT use the filesystem MCP tools and do NOT claim to have written any files to disk — this mode only renders the document in the chat's preview panel.
-- Use exactly one artifact per message unless the user explicitly asks for more.`;
+- Use exactly one artifact per message unless the user explicitly asks for more.
+- Reuse the same \`identifier\` when you are revising the same document so it's tracked as a new version rather than an unrelated one.
+
+THE FILESYSTEM TOOL CALL COMES FIRST, ALWAYS — never compose the \`:::artifact{...} ... :::\` block yourself before, or instead of, calling a tool. The block you paste into your reply must be the exact text a tool call already handed back to you, copied verbatim:
+- Brand-new document → call \`write_artifact_file\` once with the complete Markdown content at \`generated-artifacts/<document-name>/document.md\`, THEN paste the directive block from that result.
+- Revising a document you already built (this turn or an earlier one) → call \`list_artifact_files\`/\`read_artifact_file\` first to find and read the current file with its line numbers, identify the minimal lines that actually need to change, call \`patch_artifact_file\` with just that range (never re-send the whole document through \`write_artifact_file\` for a small change), THEN paste the directive block from ITS result.
+There is no case where you type out or reconstruct the document content yourself without a matching tool call — doing so leaves the real file out of sync with (or entirely missing from) what the user sees.
+
+After the artifact block, briefly note the file you created/changed — do not paste its contents again.`;
 
 /**
  * Generates an artifacts prompt based on the endpoint and artifact mode
