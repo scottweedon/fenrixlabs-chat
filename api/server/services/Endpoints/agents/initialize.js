@@ -319,6 +319,7 @@ const initializeClient = async ({
       updateToolCallResult: db.updateToolCallResult,
     }),
     emitAttachment: createAttachmentEmitter({ res, streamId, jobCreatedAt }),
+    recordArtifactFile: (params) => db.upsertArtifactFile(params),
     ...getSkillToolDeps(),
   };
 

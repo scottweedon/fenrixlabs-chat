@@ -2,6 +2,7 @@ import yaml from 'js-yaml';
 import { Types } from 'mongoose';
 import { logger } from '@librechat/data-schemas';
 import { GraphEvents, Constants } from '@librechat/agents';
+import { splitMCPToolKey } from 'librechat-data-provider';
 import type {
   LCTool,
   EventHandler,
@@ -105,6 +106,22 @@ export interface ToolExecuteOptions {
   }) => Promise<{ attachments?: unknown[] } | null>;
   /** Emits an `attachment` SSE event on the current request's live stream. */
   emitAttachment?: (attachment: unknown) => void;
+  /**
+   * Upserts a Library entry for a file the `artifact-filesystem` MCP server
+   * just wrote/patched on disk. Called opportunistically after a successful
+   * `write_artifact_file`/`patch_artifact_file`/`patch_artifact_marker`/
+   * `create_artifact_bundle` result; failures are logged and swallowed so a
+   * Library bookkeeping issue never fails the user's actual tool call.
+   */
+  recordArtifactFile?: (params: {
+    userId: string;
+    conversationId: string;
+    messageId?: string;
+    identifier: string;
+    title: string;
+    relativePath: string;
+    mode: 'webpage' | 'document';
+  }) => Promise<void>;
   /**
    * Loads a skill by name with ACL constraint (returns full body for injection).
    *
@@ -2014,6 +2031,113 @@ function resolveBackgroundUserId(configurable: Record<string, unknown> | undefin
   }
   const idFromUser = (user as { id?: string } | undefined)?.id;
   return typeof idFromUser === 'string' ? idFromUser : '';
+}
+
+const ARTIFACT_FILESYSTEM_SERVER_NAME = 'artifact-filesystem';
+const ARTIFACT_FILESYSTEM_WRITE_TOOLS: ReadonlySet<string> = new Set([
+  'write_artifact_file',
+  'patch_artifact_file',
+  'patch_artifact_marker',
+  'create_artifact_bundle',
+]);
+
+/** Mirrors the MCP server's own extension-based mode inference (see
+ *  `scripts/artifact-filesystem-server.mjs`'s `buildArtifactWriteResult`). */
+function inferArtifactFileMode(relativePath: string): 'webpage' | 'document' | undefined {
+  if (/\.html?$/i.test(relativePath)) {
+    return 'webpage';
+  }
+  if (/\.(md|markdown)$/i.test(relativePath)) {
+    return 'document';
+  }
+  return undefined;
+}
+
+/** Best-effort human title from a `generated-artifacts/<name>/...` path — the
+ *  convention both the webpage layered-build skill and the document skill use. */
+function titleFromArtifactPath(relativePath: string): string {
+  const segments = relativePath.split(/[\\/]/).filter(Boolean);
+  return segments.length > 1 ? segments[segments.length - 2] : (segments[0] ?? relativePath);
+}
+
+/**
+ * Extracts the relative file path a successful `artifact-filesystem` write/patch
+ * tool call just wrote, for Library bookkeeping. `create_artifact_bundle` has no
+ * `relative_path` arg — it always writes `index.html` under `<artifact_name>/`.
+ */
+function extractArtifactRelativePath(toolName: string, args: unknown): string | undefined {
+  const record = args as Record<string, unknown> | undefined;
+  if (toolName === 'create_artifact_bundle') {
+    const artifactName = record?.artifact_name;
+    return typeof artifactName === 'string' && artifactName !== ''
+      ? `${artifactName}/index.html`
+      : undefined;
+  }
+  const relativePath = record?.relative_path;
+  return typeof relativePath === 'string' && relativePath !== '' ? relativePath : undefined;
+}
+
+/**
+ * Opportunistically records a Library entry after a successful call to one of
+ * the `artifact-filesystem` MCP server's write/patch tools. Never throws —
+ * a bookkeeping failure must not fail the user's actual tool call.
+ */
+async function maybeRecordArtifactFile(params: {
+  toolName: string;
+  toolArgs: unknown;
+  mergedConfigurable: Record<string, unknown> | undefined;
+  metadata: unknown;
+  recordArtifactFile: ToolExecuteOptions['recordArtifactFile'];
+}): Promise<void> {
+  const { toolName, toolArgs, mergedConfigurable, metadata, recordArtifactFile } = params;
+  if (!recordArtifactFile) {
+    return;
+  }
+
+  const [rawToolName, serverName] = splitMCPToolKey(toolName);
+  if (serverName !== ARTIFACT_FILESYSTEM_SERVER_NAME || !ARTIFACT_FILESYSTEM_WRITE_TOOLS.has(rawToolName)) {
+    return;
+  }
+
+  const relativePath = extractArtifactRelativePath(rawToolName, toolArgs);
+  if (!relativePath) {
+    return;
+  }
+
+  const mode = inferArtifactFileMode(relativePath);
+  if (!mode) {
+    return;
+  }
+
+  const userId = resolveBackgroundUserId(mergedConfigurable);
+  if (!userId) {
+    return;
+  }
+
+  const conversationId =
+    ((metadata as Record<string, unknown>)?.thread_id as string | undefined) ??
+    (mergedConfigurable?.thread_id as string | undefined) ??
+    '';
+  if (!conversationId) {
+    return;
+  }
+
+  const messageId = (metadata as Record<string, unknown>)?.run_id as string | undefined;
+  const title = titleFromArtifactPath(relativePath);
+
+  try {
+    await recordArtifactFile({
+      userId,
+      conversationId,
+      messageId,
+      identifier: title,
+      title,
+      relativePath,
+      mode,
+    });
+  } catch (error) {
+    logger.warn('[ON_TOOL_EXECUTE] Failed to record artifact Library entry:', error);
+  }
 }
 
 /**
@@ -4304,6 +4428,14 @@ export function createToolExecuteHandler(options: ToolExecuteOptions): EventHand
                         },
                       );
                     }
+
+                    await maybeRecordArtifactFile({
+                      toolName: tc.name,
+                      toolArgs: foregroundArgs,
+                      mergedConfigurable,
+                      metadata,
+                      recordArtifactFile: options.recordArtifactFile,
+                    });
 
                     return {
                       toolCallId: tc.id,

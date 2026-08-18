@@ -4,6 +4,7 @@ import {
   Bot,
   Brain,
   Bookmark,
+  FolderOpen,
   NotebookPen,
   ScrollText,
   ArrowRightToLine,
@@ -31,6 +32,7 @@ import BookmarkPanel from '~/components/SidePanel/Bookmarks/BookmarkPanel';
 import PanelSwitch from '~/components/SidePanel/Builder/PanelSwitch';
 import Parameters from '~/components/SidePanel/Parameters/Panel';
 import { MemoryPanel } from '~/components/SidePanel/Memories';
+import LibraryPanel from '~/components/SidePanel/Artifacts/LibraryPanel';
 import FilesPanel from '~/components/SidePanel/Files/Panel';
 import { PromptsAccordion } from '~/components/Prompts';
 import { SkillsAccordion } from '~/components/Skills';
@@ -176,6 +178,14 @@ export default function useSideNavLinks({
       icon: AttachmentIcon,
       id: 'files',
       Component: FilesPanel,
+    });
+
+    links.push({
+      title: 'com_ui_library',
+      label: '',
+      icon: FolderOpen,
+      id: 'library',
+      Component: LibraryPanel,
     });
 
     if (

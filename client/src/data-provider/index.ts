@@ -6,6 +6,8 @@ export * from './Files';
 export * from './Langfuse';
 /* Memories */
 export * from './Memories';
+/* Artifact Library */
+export * from './Artifacts';
 export * from './Messages';
 export * from './Misc';
 export * from './Projects';

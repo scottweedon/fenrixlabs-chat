@@ -163,6 +163,29 @@ export type MemoriesResponse = {
   usagePercentage: number | null;
 };
 
+/* Artifact Library */
+export type TArtifactLibraryEntry = {
+  _id: string;
+  conversationId: string;
+  messageId?: string;
+  identifier: string;
+  title: string;
+  relativePath: string;
+  mode: 'webpage' | 'document';
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ArtifactLibraryResponse = {
+  artifacts: TArtifactLibraryEntry[];
+  nextCursor: string | null;
+};
+
+export type ArtifactLibraryParams = {
+  cursor?: string;
+  limit?: number;
+};
+
 export type PrincipalSearchParams = {
   q: string;
   limit?: number;

@@ -1,4 +1,5 @@
 const accessPermissions = require('./accessPermissions');
+const artifacts = require('./artifacts');
 const assistants = require('./assistants');
 const categories = require('./categories');
 const adminAuth = require('./admin/auth');
@@ -61,6 +62,7 @@ module.exports = {
   share,
   banner,
   agents,
+  artifacts,
   convos,
   search,
   config,

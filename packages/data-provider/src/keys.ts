@@ -60,6 +60,8 @@ export enum QueryKeys {
   banner = 'banner',
   /* Memories */
   memories = 'memories',
+  /* Artifact Library */
+  artifactLibrary = 'artifactLibrary',
   principalSearch = 'principalSearch',
   accessRoles = 'accessRoles',
   resourcePermissions = 'resourcePermissions',

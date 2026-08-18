@@ -497,6 +497,19 @@ export const disableTwoFactor = () => `${BASE_URL}/api/auth/2fa/disable`;
 export const regenerateBackupCodes = () => `${BASE_URL}/api/auth/2fa/backup/regenerate`;
 export const verifyTwoFactorTemp = () => `${BASE_URL}/api/auth/2fa/verify-temp`;
 
+/* Artifact Library */
+export const artifactLibrary = (params?: { cursor?: string; limit?: number }) => {
+  const query = new URLSearchParams();
+  if (params?.cursor) {
+    query.set('cursor', params.cursor);
+  }
+  if (params?.limit != null) {
+    query.set('limit', String(params.limit));
+  }
+  const queryString = query.toString();
+  return `${BASE_URL}/api/artifacts/library${queryString ? `?${queryString}` : ''}`;
+};
+
 /* Memories */
 export const memories = () => `${BASE_URL}/api/memories`;
 export const memory = (key: string, agentId?: string) =>

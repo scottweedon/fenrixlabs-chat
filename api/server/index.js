@@ -303,6 +303,7 @@ const startServer = async () => {
   app.use('/api/agents/chat', rejectChatStartsUntilReady);
   app.use('/api/agents', routes.agents);
   app.use('/api/banner', routes.banner);
+  app.use('/api/artifacts', routes.artifacts);
   app.use('/api/memories', routes.memories);
   app.use('/api/permissions', routes.accessPermissions);
 

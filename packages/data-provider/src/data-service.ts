@@ -1348,6 +1348,13 @@ export const getMemories = (): Promise<q.MemoriesResponse> => {
   return request.get(endpoints.memories());
 };
 
+/* Artifact Library */
+export const getArtifactLibrary = (
+  params?: q.ArtifactLibraryParams,
+): Promise<q.ArtifactLibraryResponse> => {
+  return request.get(endpoints.artifactLibrary(params));
+};
+
 export const deleteMemory = (key: string, agentId?: string): Promise<void> => {
   return request.delete(endpoints.memory(key, agentId));
 };

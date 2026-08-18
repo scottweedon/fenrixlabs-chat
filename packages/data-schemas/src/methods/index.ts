@@ -13,6 +13,13 @@ import {
   MAX_TOOL_FAVORITES,
   type ToolFavoriteMethods,
 } from './favorite';
+/* Artifact Library */
+import {
+  createArtifactFileMethods,
+  DEFAULT_ARTIFACT_LIBRARY_LIMIT,
+  MAX_ARTIFACT_LIBRARY_LIMIT,
+  type ArtifactFileMethods,
+} from './artifactFile';
 /* Agent Categories */
 import { createAgentCategoryMethods, type AgentCategoryMethods } from './agentCategory';
 /* Agent API Keys */
@@ -117,6 +124,7 @@ export {
 };
 export { AUDIT_SCHEMA_VERSION, MAX_AUDIT_EXPORT_ROWS, MAX_AUDIT_LOG_LIMIT, MAX_AUDIT_VERIFY_ROWS };
 export { MAX_TOOL_FAVORITES };
+export { DEFAULT_ARTIFACT_LIBRARY_LIMIT, MAX_ARTIFACT_LIBRARY_LIMIT };
 
 export type AllMethods = UserMethods &
   SessionMethods &
@@ -126,6 +134,7 @@ export type AllMethods = UserMethods &
   FileMethods &
   MemoryMethods &
   ToolFavoriteMethods &
+  ArtifactFileMethods &
   AgentCategoryMethods &
   AgentApiKeyMethods &
   MCPServerMethods &
@@ -258,6 +267,7 @@ export function createMethods(
     ...createFileMethods(mongoose),
     ...createMemoryMethods(mongoose),
     ...createToolFavoriteMethods(mongoose),
+    ...createArtifactFileMethods(mongoose),
     ...createAgentCategoryMethods(mongoose),
     ...createAgentApiKeyMethods(mongoose),
     ...createMCPServerMethods(mongoose),
@@ -304,6 +314,7 @@ export type {
   FileOwnerScope,
   MemoryMethods,
   ToolFavoriteMethods,
+  ArtifactFileMethods,
   AgentCategoryMethods,
   AgentApiKeyMethods,
   MCPServerMethods,
