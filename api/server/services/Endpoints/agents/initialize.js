@@ -433,8 +433,28 @@ const initializeClient = async ({
       primaryAgent.skills_enabled = false;
       primaryAgent.skills = [];
     } else if (Array.isArray(selectedModelSpec.skills)) {
+      /**
+       * The `artifact-file-workflow`/`artifact-document-workflow` pair is mode-specific
+       * (Webpage vs Document) — injecting both regardless of the live artifacts toggle
+       * put contradictory instructions in front of the model at the same time (one skill
+       * saying "separate CSS/JS files", the system prompt saying "single file, layered
+       * patches"), which is exactly what led it to hallucinate a nonexistent tool name.
+       * Only exclude the OPPOSITE skill when the mode is definitively known to be the
+       * other one — any unrecognized/missing `artifacts` value falls back to including
+       * both, same as before this filter existed.
+       */
+      const artifactsMode = primaryAgent.artifacts;
+      const filteredSkillNames = selectedModelSpec.skills.filter((name) => {
+        if (name === 'artifact-file-workflow' && artifactsMode === 'document') {
+          return false;
+        }
+        if (name === 'artifact-document-workflow' && artifactsMode === 'webpage') {
+          return false;
+        }
+        return true;
+      });
       const resolvedSkillIds = await resolveModelSpecSkillIds({
-        names: selectedModelSpec.skills,
+        names: filteredSkillNames,
         accessibleSkillIds,
         getSkillByName: skillDbMethods.getSkillByName,
       });

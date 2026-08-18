@@ -21,32 +21,14 @@ Use this when the user asks for:
 
 ## Required behavior
 
-1. Prefer an artifact over a plain chat response when the result should be previewed and reused.
-2. Create a real file under `generated-artifacts/<document-name>/document.md` using the filesystem
-   tools — do not compose the artifact directive yourself without a matching tool call.
-3. Brand-new document → call `write_artifact_file` once with the complete Markdown content, THEN
-   paste the directive block from its result.
-4. Revising a document you already built (this turn or an earlier one) → call
-   `list_artifact_files`/`read_artifact_file` first to find and read the current file with its line
-   numbers, identify the minimal lines that actually need to change, then call `patch_artifact_file`
-   with just that range. Never re-send the whole file through `write_artifact_file` for a small edit.
-5. Structure the document with Markdown headers, sections, and lists as appropriate for a readable
-   report.
-6. Include the complete and updated content of the document, without any truncation, placeholders,
-   ellipses, or "rest remains the same" comments.
-7. After the artifact block, briefly list the file you created/changed — do not paste its contents
-   again.
-8. The artifact directive's Markdown content must match `generated-artifacts/<document-name>/document.md`
-   on disk — because it IS that same content, copied from the tool result, not independently retyped.
-
-## Directory rules
-
-- Write only under `generated-artifacts/<document-name>/`
-- Use lowercase kebab-case for `<document-name>`
-- One file per document: `document.md`
+Follow the exact process (write/patch `generated-artifacts/<document-name>/document.md`
+via the filesystem tools, then paste the directive block from that tool result) described
+in your system instructions for this mode — this skill only marks that the request
+qualifies for it. Do not restate or deviate from that process here; it is the single
+source of truth for tool names, file layout, and the artifact directive format.
 
 ## Avoid
 
-- dumping the full document text into chat outside the artifact block
+- dumping the full document text into chat instead of using the filesystem tools
 - inventing a file without actually writing it
 - switching to `text/html` or `application/vnd.react` — this is a text document, not a webpage

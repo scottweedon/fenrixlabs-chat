@@ -22,45 +22,15 @@ Use this when the user asks for:
 
 ## Required behavior
 
-1. Prefer an artifact over plain chat code blocks when the result should be previewed.
-2. If the user asks for files, create real files under `generated-artifacts/<artifact-name>/`.
-3. Keep HTML, CSS, and JS as separate files unless the user requests a single-file output.
-4. Use `index.html` as the main entrypoint unless the user asks for another filename.
-5. After file creation, report the created paths briefly instead of pasting the full source into chat.
-6. Only return source code inline when artifact creation or file writing is unavailable.
-7. For previewable outputs, emit a real artifact directive in the assistant reply:
-
-```text
-:::artifact{identifier="<artifact-name>" type="text/html" title="<Readable Title>"}
-<!doctype html>
-...
-:::
-```
-
-8. Do not merely claim an artifact was created. The UI preview button appears only when the reply contains the artifact directive itself.
-9. If both files and a preview are produced, keep the artifact HTML aligned with `generated-artifacts/<artifact-name>/index.html`.
-
-## Directory rules
-
-- Write only under `generated-artifacts/<artifact-name>/`
-- Use lowercase kebab-case for `<artifact-name>`
-- Typical structure:
-
-```text
-generated-artifacts/<artifact-name>/
-  index.html
-  styles.css
-  script.js
-```
-
-## HTML artifact guidance
-
-- Use an HTML artifact when the user expects visual output.
-- Keep artifact output consistent with any files written to disk.
-- If both an artifact and files are produced, the artifact should represent the same final result.
+Follow the exact single-file, layered build process (plan → skeleton → marker-based
+`patch_artifact_marker` calls for sections/styles/script) described in your system
+instructions for this mode — this skill only marks that the request qualifies for it.
+Do not restate or deviate from that process here; it is the single source of truth for
+tool names, file layout, and the artifact directive format.
 
 ## Avoid
 
-- dumping large HTML/CSS/JS code blocks into the chat by default
-- embedding CSS inline when the user asked for separate files
+- dumping large HTML/CSS/JS code blocks into the chat instead of using the filesystem tools
 - inventing files without actually writing them
+- switching to a multi-file layout (`create_artifact_bundle`) unless the user explicitly
+  asks for separate downloadable CSS/JS files
