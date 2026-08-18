@@ -30,9 +30,9 @@ jest.mock('~/components/Chat/Messages/MessageIcon', () => ({
   default: () => <div data-testid="message-icon" />,
 }));
 
-jest.mock('~/components/Chat/Messages/ui/PlaceholderRow', () => ({
+jest.mock('~/components/Chat/Messages/StreamingStatusIndicator', () => ({
   __esModule: true,
-  default: () => <div data-testid="placeholder-row" />,
+  default: () => <div data-testid="streaming-status-indicator" />,
 }));
 
 jest.mock('~/hooks', () => {
@@ -208,6 +208,6 @@ describe('streaming hover actions', () => {
 
     expect(screen.queryByTestId('hover-buttons')).toBeNull();
     expect(mockHoverButtonsRenderCount).toBe(0);
-    expect(screen.getByTestId('placeholder-row')).toBeInTheDocument();
+    expect(screen.getByTestId('streaming-status-indicator')).toBeInTheDocument();
   });
 });

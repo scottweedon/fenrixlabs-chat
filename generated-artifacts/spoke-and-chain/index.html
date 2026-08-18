@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spoke &amp; Chain — Premium Bike Shop</title>
+  <style>
+    /* --- RESET --- */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      color: #2e2e2e;
+      background: #faf8f5;
+      line-height: 1.6;
+    }
+
+    /* --- CONTAINER --- */
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 2rem;
+    }
+
+    /* --- NAV --- */
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.5rem 2rem;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .logo {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #b7563e;
+      text-decoration: none;
+      letter-spacing: -0.02em;
+    }
+
+    .logo:hover { color: #9a442f; }
+
+    .nav-links {
+      list-style: none;
+      display: flex;
+      gap: 2rem;
+    }
+
+    .nav-links a {
+      text-decoration: none;
+      color: #2e2e2e;
+      font-weight: 500;
+      font-size: 0.95rem;
+      transition: color 0.2s ease;
+    }
+
+    .nav-links a:hover { color: #b7563e; }
+
+    /* --- HERO --- */
+    .hero {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 3rem;
+      min-height: 85vh;
+      padding: 2rem;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .hero-content {
+      flex: 1;
+      max-width: 540px;
+    }
+
+    .hero-content h1 {
+      font-size: clamp(2.8rem, 6vw, 4.5rem);
+      font-weight: 800;
+      line-height: 1.08;
+      letter-spacing: -0.03em;
+      color: #2e2e2e;
+      margin-bottom: 1.2rem;
+    }
+
+    .hero-content p {
+      font-size: 1.15rem;
+      color: #5a5a5a;
+      margin-bottom: 2rem;
+      max-width: 440px;
+    }
+
+    .btn {
+      display: inline-block;
+      background: #b7563e;
+      color: #fff;
+      padding: 0.9rem 2.2rem;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1rem;
+      transition: background 0.25s ease, transform 0.2s ease;
+    }
+
+    .btn:hover {
+      background: #9a442f;
+      transform: translateY(-2px);
+    }
+
+    .hero-illustration {
+      flex-shrink: 0;
+    }
+
+    .hero-illustration svg {
+      width: 380px;
+      height: 380px;
+    }
+
+    /* --- SERVICES --- */
+    .services {
+      background: #fff;
+      padding: 6rem 0;
+    }
+
+    .services h2 {
+      text-align: center;
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+    }
+
+    .service-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 2rem;
+      margin-top: 3rem;
+    }
+
+    .card {
+      background: #faf8f5;
+      border-radius: 16px;
+      padding: 2.5rem 2rem;
+      text-align: center;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 12px 32px rgba(183, 86, 62, 0.12);
+    }
+
+    .card-icon {
+      font-size: 3rem;
+      margin-bottom: 1.2rem;
+    }
+
+    .card h3 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      margin-bottom: 0.8rem;
+      color: #2e2e2e;
+    }
+
+    .card p {
+      color: #6b6b6b;
+      font-size: 1rem;
+      line-height: 1.7;
+    }
+
+    /* --- FOOTER --- */
+    .footer {
+      background: #2e2e2e;
+      color: #ccc;
+      padding: 5rem 0 2rem;
+    }
+
+    .footer-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 3rem;
+      margin-bottom: 3rem;
+    }
+
+    .footer h4 {
+      color: #faf8f5;
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      letter-spacing: -0.01em;
+    }
+
+    .footer-brand p {
+      color: #999;
+      font-size: 0.95rem;
+      max-width: 260px;
+    }
+
+    .footer-hours time,
+    .footer-contact a,
+    .footer-contact address {
+      display: block;
+      color: #999;
+      font-size: 0.95rem;
+      margin-bottom: 0.5rem;
+      text-decoration: none;
+    }
+
+    .footer-contact time { color: #999; }
+
+    .footer-contact a:hover { color: #b7563e; }
+
+    .footer-contact address {
+      font-style: normal;
+      line-height: 1.8;
+    }
+
+    .footer-bottom {
+      text-align: center;
+      border-top: 1px solid #444;
+      padding-top: 2rem;
+      color: #666;
+      font-size: 0.9rem;
+    }
+
+    /* --- RESPONSIVE --- */
+    @media (max-width: 768px) {
+      .hero {
+        flex-direction: column-reverse;
+        text-align: center;
+        min-height: auto;
+        padding: 3rem 1.5rem;
+      }
+
+      .hero-content h1 { font-size: 2.4rem; }
+      .hero-content p { margin-left: auto; margin-right: auto; }
+
+      .hero-illustration svg {
+        width: 220px;
+        height: 220px;
+      }
+
+      .nav { padding: 1rem 1.5rem; }
+      .nav-links { gap: 1.2rem; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- SECTION: hero -->
+  <header class="hero">
+    <nav class="nav">
+      <a href="#" class="logo">Spoke &amp; Chain</a>
+      <ul class="nav-links">
+        <li><a href="#services">Services</a></li>
+        <li><a href="#footer">Visit Us</a></li>
+      </ul>
+    </nav>
+    <div class="hero-content">
+      <h1>Ride More.<br>Worry Less.</h1>
+      <p>Premium bike repairs, custom builds, and expert fitting — all under one roof in the heart of Portland.</p>
+      <a href="#services" class="btn">Explore Our Services</a>
+    </div>
+    <div class="hero-illustration">
+      <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-label="Bicycle illustration">
+        <circle cx="60" cy="140" r="50" fill="none" stroke="#b7563e" stroke-width="5"/>
+        <circle cx="140" cy="140" r="50" fill="none" stroke="#b7563e" stroke-width="5"/>
+        <path d="M60 140 L90 70 L120 80 L140 140" fill="none" stroke="#2e2e2e" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M60 140 L95 80 L120 80" fill="none" stroke="#2e2e2e" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="75" cy="62" r="5" fill="#b7563e"/>
+        <line x1="90" y1="70" x2="80" y2="45" stroke="#2e2e2e" stroke-width="4" stroke-linecap="round"/>
+        <line x1="78" y1="45" x2="92" y2="45" stroke="#2e2e2e" stroke-width="4" stroke-linecap="round"/>
+        <path d="M110 68 L120 80 L130 68" fill="none" stroke="#2e2e2e" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+  </header>
+
+  <!-- SECTION: services -->
+  <section class="services" id="services">
+    <div class="container">
+      <h2>Our Services</h2>
+      <div class="service-cards">
+
+        <article class="card">
+          <div class="card-icon">🔧</div>
+          <h3>Bike Repairs &amp; Tune-Ups</h3>
+          <p>From flat fixes to full overhauls, our certified mechanics get your ride rolling smooth — again and again.</p>
+
+        </article>
+
+        <article class="card">
+          <div class="card-icon">📐</div>
+          <h3>Custom Bike Fitting</h3>
+          <p>We measure, adjust, and optimize every angle so your new bike feels like it was built for you alone.</p>
+        </article>
+
+        <article class="card">
+          <div class="card-icon">🚲</div>
+          <h3>Bespoke Builds</h3>
+          <p>Tell us about your dream ride. We'll source the frame, components, and colors — and bring it to life.</p>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION: footer -->
+  <footer class="footer" id="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <h4>Spoke &amp; Chain</h4>
+          <p>Premium bicycles and service in Portland, OR since 2018.</p>
+        </div>
+        <div class="footer-hours">
+          <h4>Hours</h4>
+          <time>Mon–Fri: 9 am – 6 pm</time>
+          <time>Sat: 10 am – 4 pm</time>
+          <time>Sun: Closed</time>
+        </div>
+        <div class="footer-contact">
+          <h4>Contact</h4>
+          <a href="mailto:hello@spokeandchain.com">hello@spokeandchain.com</a>
+          <a href="tel:+15035551234">(503) 555-1234</a>
+          <address>742 Evergreen Terrace<br>Portland, OR 97201</address>
+        </div>
+      </div>
+      <p class="footer-bottom">&copy; 2024 Spoke &amp; Chain. All rights reserved.</p>
+    </div>
+  </footer>
+
+</body>
+</html>

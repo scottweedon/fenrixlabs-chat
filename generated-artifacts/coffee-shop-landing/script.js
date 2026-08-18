@@ -1,0 +1,1 @@
+// See index.html — scripts embedded for compatibility

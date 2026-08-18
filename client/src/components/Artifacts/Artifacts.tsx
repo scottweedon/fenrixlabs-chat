@@ -1,15 +1,16 @@
 import { useRef, useState, useEffect, useCallback, useMemo } from 'react';
 import copy from 'copy-to-clipboard';
 import * as Tabs from '@radix-ui/react-tabs';
-import { Code, Play, RefreshCw, X } from 'lucide-react';
-import { useSetRecoilState, useResetRecoilState } from 'recoil';
-import { Button, Spinner, useMediaQuery, Radio } from '@librechat/client';
+import { FolderOpen, Code, Play, RefreshCw, History, X } from 'lucide-react';
+import { useRecoilValue, useSetRecoilState, useResetRecoilState } from 'recoil';
+import { Constants } from 'librechat-data-provider';
+import { Button, Spinner, useMediaQuery, Radio, DropdownPopup } from '@librechat/client';
 import type { SandpackPreviewRef } from '@codesandbox/sandpack-react';
 import CopyButton from '~/components/Messages/Content/CopyButton';
-import { useShareContext, useMutationState } from '~/Providers';
+import { useShareContext, useMutationState, useArtifactsContext } from '~/Providers';
 import useArtifacts from '~/hooks/Artifacts/useArtifacts';
 import DownloadArtifact from './DownloadArtifact';
-import ArtifactVersion from './ArtifactVersion';
+import ArtifactExplorer, { getArtifactLabel } from './ArtifactExplorer';
 import ArtifactTabs from './ArtifactTabs';
 import { isCodeOnlyArtifact, isPreviewOnlyArtifact } from '~/utils/artifacts';
 import { displayFilename } from '~/components/Chat/Messages/Content/Parts/attachmentTypes';
@@ -38,6 +39,10 @@ export default function Artifacts() {
   const dragStartHeight = useRef(90);
   const setArtifactsVisible = useSetRecoilState(store.artifactsVisibility);
   const resetCurrentArtifactId = useResetRecoilState(store.currentArtifactId);
+  const { conversationId } = useArtifactsContext();
+  const isPanelPinned = useRecoilValue(
+    store.artifactsPanelPinned(conversationId ?? Constants.NEW_CONVO),
+  );
 
   const allTabOptions = useMemo(
     () => [
@@ -87,11 +92,13 @@ export default function Artifacts() {
   const {
     activeTab,
     setActiveTab,
-    currentIndex,
     currentArtifact,
     orderedArtifactIds,
     setCurrentArtifactId,
   } = useArtifacts();
+  const artifacts = useRecoilValue(store.artifactsState);
+  const [isExplorerOpen, setIsExplorerOpen] = useState(false);
+  const hasMultipleArtifacts = orderedArtifactIds.length > 1;
 
   /* Office artifacts have no source view, and source-code artifacts have
    * no useful rendered preview. Filter each down to the only meaningful
@@ -173,7 +180,10 @@ export default function Artifacts() {
     }
   };
 
-  if (!currentArtifact || !isMounted) {
+  if (!isMounted) {
+    return null;
+  }
+  if (!currentArtifact && !isPanelPinned) {
     return null;
   }
 
@@ -316,20 +326,38 @@ export default function Artifacts() {
               {displayedTab !== 'preview' && isMutating && (
                 <RefreshCw size={16} className="animate-spin text-text-secondary" />
               )}
-              {orderedArtifactIds.length > 1 && (
-                <ArtifactVersion
-                  currentIndex={currentIndex}
-                  totalVersions={orderedArtifactIds.length}
-                  onVersionChange={(index) => {
-                    const target = orderedArtifactIds[index];
-                    if (target) {
-                      setCurrentArtifactId(target);
-                    }
-                  }}
+              {isMobile && hasMultipleArtifacts && (
+                <DropdownPopup
+                  menuId="artifact-explorer-menu"
+                  portal
+                  focusLoop
+                  unmountOnHide
+                  isOpen={isExplorerOpen}
+                  setIsOpen={setIsExplorerOpen}
+                  trigger={
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-9 w-9"
+                      aria-label={localize('com_ui_artifacts')}
+                    >
+                      <History size={18} className="text-text-secondary" aria-hidden="true" />
+                    </Button>
+                  }
+                  items={orderedArtifactIds.map((id) => ({
+                    label: getArtifactLabel(artifacts?.[id], localize),
+                    onClick: () => setCurrentArtifactId(id),
+                    ariaChecked: id === currentArtifact?.id,
+                  }))}
+                  className="right-0 top-0 mt-2"
                 />
               )}
-              <CopyButton isCopied={isCopied} iconOnly onClick={handleCopyArtifact} />
-              <DownloadArtifact artifact={currentArtifact} />
+              {currentArtifact && (
+                <>
+                  <CopyButton isCopied={isCopied} iconOnly onClick={handleCopyArtifact} />
+                  <DownloadArtifact artifact={currentArtifact} />
+                </>
+              )}
               <Button
                 size="icon"
                 variant="ghost"
@@ -342,30 +370,53 @@ export default function Artifacts() {
             </div>
           </div>
 
-          <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden bg-surface-primary">
-            <div className="absolute inset-0 flex flex-col">
-              <ArtifactTabs
-                artifact={currentArtifact}
-                previewRef={previewRef as React.MutableRefObject<SandpackPreviewRef>}
-                isSharedConvo={isSharedConvo}
+          <div className="relative flex min-h-0 flex-1 overflow-hidden">
+            {!isMobile && hasMultipleArtifacts && (
+              <ArtifactExplorer
+                orderedArtifactIds={orderedArtifactIds}
+                artifacts={artifacts}
+                currentArtifactId={currentArtifact?.id ?? null}
+                onSelect={setCurrentArtifactId}
+                className="w-56 flex-shrink-0 border-r border-border-light bg-surface-primary-alt"
               />
-            </div>
+            )}
+            <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden bg-surface-primary">
+              <div className="absolute inset-0 flex flex-col">
+                {currentArtifact ? (
+                  <ArtifactTabs
+                    artifact={currentArtifact}
+                    previewRef={previewRef as React.MutableRefObject<SandpackPreviewRef>}
+                    isSharedConvo={isSharedConvo}
+                  />
+                ) : (
+                  <div className="flex h-full w-full flex-col items-center justify-center gap-2 p-6 text-center">
+                    <FolderOpen className="size-8 text-text-secondary" aria-hidden="true" />
+                    <p className="text-sm font-medium text-text-primary">
+                      {localize('com_ui_artifacts_empty_title' as any)}
+                    </p>
+                    <p className="max-w-xs text-sm text-text-secondary">
+                      {localize('com_ui_artifacts_empty_description' as any)}
+                    </p>
+                  </div>
+                )}
+              </div>
 
-            <div
-              className={cn(
-                'absolute inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-sm transition-opacity duration-300 ease-in-out',
-                isRefreshing ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0',
-              )}
-              aria-hidden={!isRefreshing}
-              role="status"
-            >
               <div
                 className={cn(
-                  'transition-transform duration-300 ease-in-out',
-                  isRefreshing ? 'scale-100' : 'scale-95',
+                  'absolute inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-sm transition-opacity duration-300 ease-in-out',
+                  isRefreshing ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0',
                 )}
+                aria-hidden={!isRefreshing}
+                role="status"
               >
-                <Spinner size={24} />
+                <div
+                  className={cn(
+                    'transition-transform duration-300 ease-in-out',
+                    isRefreshing ? 'scale-100' : 'scale-95',
+                  )}
+                >
+                  <Spinner size={24} />
+                </div>
               </div>
             </div>
           </div>

@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leaf &amp; Root — Modern Plant Shop</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&amp;family=Inter:wght@300;400;500&amp;display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      color: #2d3a2e;
+      background: #faf9f6;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Navbar ── */
+    .navbar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 1rem 2.5rem;
+      background: rgba(250,249,246,.82);
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid rgba(45,58,46,.07);
+    }
+    .logo a {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.35rem; font-weight: 700; color: #2d3a2e;
+      text-decoration: none; letter-spacing: -.02em; display: flex; align-items: center; gap: .45rem;
+    }
+    .logo .leaf-icon {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 30px; height: 30px; background: #5b8c5a; border-radius: 50%; font-size: .85rem; color: #fff;
+    }
+
+    .nav-links { list-style: none; display: flex; gap: 2.4rem; }
+    .nav-links a {
+      text-decoration: none; color: #2d3a2e; font-size: .82rem;
+      font-weight: 500; letter-spacing: .1em; text-transform: uppercase;
+      transition: color .25s;
+    }
+    .nav-links a:hover { color: #5b8c5a; }
+
+    /* ── Hero ── */
+    .hero {
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      text-align: center; padding: 7rem 2rem 4rem; position: relative; overflow: hidden;
+      background: linear-gradient(160deg, #f0f5ee 0%, #faf9f6 45%, #f4f1ea 100%);
+    }
+    .hero-amb {
+      position: absolute; border-radius: 50%; pointer-events: none;
+    }
+    .hero-amb.one {
+      top: -18%; right: -10%; width: 55vw; max-width: 720px; height: 55vw; max-height: 720px;
+      background: radial-gradient(circle, rgba(91,140,90,.07) 0%, transparent 70%);
+    }
+    .hero-amb.two {
+      bottom: -22%; left: -8%; width: 38vw; max-width: 480px; height: 38vw; max-height: 480px;
+      background: radial-gradient(circle, rgba(186,163,127,.1) 0%, transparent 70%);
+    }
+
+    .hero-content { position: relative; z-index: 1; max-width: 680px; }
+    .badge {
+      display: inline-block; padding: .4rem 1.3rem; margin-bottom: 1.5rem;
+      background: rgba(91,140,90,.1); color: #5b8c5a; font-size: .72rem;
+      font-weight: 600; letter-spacing: .14em; text-transform: uppercase; border-radius: 50px;
+    }
+    .hero-content h1 {
+      font-family: 'Playfair Display', serif; font-size: clamp(3rem, 7vw, 5.2rem);
+      font-weight: 700; line-height: 1.08; color: #1e2b1f; margin-bottom: 1.4rem;
+      letter-spacing: -.03em;
+    }
+    .hero-content h1 em { font-style: italic; color: #5b8c5a; }
+    .hero-content p {
+      font-size: 1.12rem; color: #5a6b5d; max-width: 490px; margin: 0 auto 2.6rem;
+      font-weight: 300; line-height: 1.75;
+    }
+
+    .cta-btn {
+      display: inline-flex; align-items: center; gap: .55rem; padding: 1rem 2.6rem;
+      background: #5b8c5a; color: #fff; text-decoration: none; font-size: .85rem;
+      font-weight: 500; letter-spacing: .07em; text-transform: uppercase; border-radius: 50px;
+      transition: background .3s, transform .3s, box-shadow .3s;
+    }
+    .cta-btn:hover {
+      background: #4c794b; transform: translateY(-2px);
+      box-shadow: 0 6px 24px rgba(91,140,90,.25);
+    }
+
+    /* ── Featured ── */
+    .featured { padding: 5.5rem 2rem; max-width: 1140px; margin: 0 auto; }
+
+    .section-header { text-align: center; margin-bottom: 3.6rem; }
+    .section-header span {
+      display: inline-block; font-size: .72rem; font-weight: 600; letter-spacing: .14em;
+      text-transform: uppercase; color: #5b8c5a; margin-bottom: .7rem;
+    }
+    .section-header h2 {
+      font-family: 'Playfair Display', serif; font-size: clamp(2rem, 4vw, 2.8rem);
+      font-weight: 600; color: #1e2b1f; letter-spacing: -.02em;
+    }
+
+    .plant-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+      gap: 2rem;
+    }
+
+    .plant-card {
+      background: #fff; border-radius: 18px; overflow: hidden;
+      box-shadow: 0 1px 4px rgba(45,58,46,.03), 0 6px 28px rgba(45,58,46,.045);
+      transition: transform .4s ease, box-shadow .4s ease;
+    }
+    .plant-card:hover {
+      transform: translateY(-7px);
+      box-shadow: 0 8px 16px rgba(45,58,46,.06), 0 20px 52px rgba(45,58,46,.07);
+    }
+
+    .plant-img {
+      width: 100%; height: 290px; display: flex; align-items: center; justify-content: center;
+      font-size: 4.5rem; position: relative;
+    }
+    .plant-img.monstera  { background: linear-gradient(135deg, #d9ecce 0%, #b7d6a9 100%); }
+    .plant-img.fiddle    { background: linear-gradient(135deg, #e8dcc8 0%, #d9c9ab 100%); }
+    .plant-img.succulent { background: linear-gradient(135deg, #c4ddf0 0%, #a8cce4 100%); }
+
+    @media (hover: hover) {
+      .plant-card:hover .plant-img::after { opacity: 1; }
+    }
+    .plant-img::after {
+      content: ''; position: absolute; inset: 0; cursor: pointer;
+      transition: opacity .3s; backdrop-filter: blur(2px); opacity: 0;
+    }
+
+    .plant-info { padding: 1.8rem; }
+    .plant-info h3 {
+      font-family: 'Playfair Display', serif; font-size: 1.3rem; font-weight: 600; color: #1e2b1f;
+      margin-bottom: .15rem;
+    }
+    .botanical { font-style: italic; font-size: .82rem; color: #7a8b7c; margin-bottom: 1rem; }
+    .desc { font-size: .88rem; color: #5a6b5d; line-height: 1.7; margin-bottom: 1.3rem; }
+
+    .plant-meta { display: flex; gap: .6rem; flex-wrap: wrap; margin-bottom: 1.2rem; }
+    .meta {
+      display: inline-flex; align-items: center; gap: .3rem; padding: .25rem .65rem;
+      background: #f2f5f0; border-radius: 8px; font-size: .72rem; color: #5a6b5d; font-weight: 400;
+    }
+
+    .price-row { display: flex; justify-content: space-between; align-items: center; }
+    .price { font-family: 'Playfair Display', serif; font-size: 1.2rem; font-weight: 600; color: #2d3a2e; }
+
+    .add-btn {
+      padding: .55rem 1.5rem; background: transparent; border: 1.5px solid #5b8c5a;
+      color: #5b8c5a; border-radius: 50px; font-size: .78rem; font-weight: 500;
+      letter-spacing: .04em; text-transform: uppercase; cursor: pointer;
+      transition: background .3s, color .3s, border-color .3s;
+    }
+    .add-btn:hover { background: #5b8c5a; color: #fff; border-color: #5b8c5a; }
+
+    /* ── Footer ── */
+    footer {
+      background: #1e2b1f; color: #b7c4b0; padding: 4rem 2rem 0; margin-top: 2rem;
+    }
+    .footer-inner {
+      max-width: 1140px; margin: 0 auto;
+      display: grid; grid-template-columns: 1.6fr 1fr 1fr 1fr; gap: 3rem;
+    }
+    .flogo {
+      font-family: 'Playfair Display', serif; font-size: 1.35rem; font-weight: 700; color: #faf9f6;
+      margin-bottom: .8rem;
+    }
+    .flogo span { display: inline-flex; align-items: center; justify-content: center; width:24px;height:24px;background:#5b8c5a;border-radius:50%; font-size:.7rem; margin-right:.4rem; vertical-align: middle; color:#fff; }
+    .brand-block p { font-size: .84rem; line-height: 1.75; max-width: 250px; opacity: .75; }
+
+    .footer-col h4 {
+      font-family: 'Playfair Display', serif; font-size: .95rem; font-weight: 600; color: #faf9f6; margin-bottom: .9rem;
+    }
+    .footer-col ul { list-style: none; }
+    .footer-col ul li { margin-bottom: .45rem; }
+    .footer-col ul li a { color: #b7c4b0; text-decoration: none; font-size: .83rem; opacity: .75; transition: opacity .25s, color .25s; }
+    .footer-col ul li a:hover { opacity: 1; color: #faf9f6; }
+
+    .foot-bottom {
+      max-width: 1140px; margin: 3rem auto 0; padding: 1.5rem 0; border-top: 1px solid rgba(255,255,255,.07);
+      text-align: center; font-size: .78rem; color: #6e7e6e;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 900px) {
+      .footer-inner { grid-template-columns: 1.4fr 1fr; gap: 2rem; }
+    }
+    @media (max-width: 640px) {
+      .navbar { padding: .85rem 1.5rem; }
+      .nav-links { display: none; }
+      .hero { padding-top: 6rem; min-height: 90vh; }
+      .footer-inner { grid-template-columns: 1fr; gap: 2rem; text-align: center; }
+      .brand-block p { max-width: 100%; margin: 0 auto; }
+      .plant-grid { grid-template-columns: 1fr; max-width: 400px; margin: 0 auto; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="logo">
+      <a href="#"><span class="leaf-icon">🌱</span> Leaf &amp; Root</a>
+    </div>
+    <ul class="nav-links">
+      <li><a href="#hero">Home</a></li>
+      <li><a href="#featured">Shop</a></li>
+      <li><a href="#footer">About</a></li>
+    </ul>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero" id="hero">
+    <div class="hero-amb one"></div>
+    <div class="hero-amb two"></div>
+    <div class="hero-content">
+      <span class="badge">&#127806;&nbsp; New Season Collections Available</span>
+      <h1>Bring the&nbsp;Outdoors<br><em>Home.</em></h1>
+      <p>Curated houseplants, sustainable pottery, and expert care advice — everything your urban jungle needs to thrive.</p>
+      <a class="cta-btn" href="#featured">Shop Featured Plants &rarr;</a>
+    </div>
+  </section>
+
+  <!-- Featured Plants -->
+  <section class="featured" id="featured">
+    <div class="section-header">
+      <span>&#9671;&nbsp; Our Best Sellers</span>
+      <h2>This Month's Favorites</h2>
+    </div>
+
+    <div class="plant-grid">
+
+      <article class="plant-card">
+        <div class="plant-img monstera">🌿</div>
+        <div class="plant-info">
+          <h3>Monstera Deliciosa</h3>
+          <p class="botanical">&nbsp;Swiss Cheese Plant</p>
+          <p class="desc">Iconic split-leaf foliage that thrives in bright, indirect light. The ultimate statement plant for any living room or workspace.</p>
+          <div class="plant-meta">
+            <span class="meta">&#127809;&nbsp;Easy Care</span>
+            <span class="meta">&#x2b06;&nbsp;Up to 8 ft</span>
+          </div>
+          <div class="price-row">
+            <span class="price">$34</span>
+            <button class="add-btn" onclick="this.textContent='Added ✓';this.style.background='#5b8c5a';this.style.color='#fff';this.style.borderColor='#5b8c5a';">Add to Cart</button>
+          </div>
+        </div>
+      </article>
+
+      <article class="plant-card">
+        <div class="plant-img fiddle">🪴</div>
+        <div class="plant-info">
+          <h3>Fiddle Leaf Fig</h3>
+          <p class="botanical">&nbsp;Ficus lyrata</p>
+          <p class="desc">Stately, large violin-shaped leaves in a dramatic upright habit. A designer favorite the devoted plant parent will love.</p>
+          <div class="plant-meta">
+            <span class="meta">&#127808;&nbsp;Intermediate Care</span>
+            <span class="meta">&#x2b06;&nbsp;Up to 10 ft</span>
+          </div>
+          <div class="price-row">
+            <span class="price">$48</span>
+            <button class="add-btn" onclick="this.textContent='Added ✓';this.style.background='#5b8c5a';this.style.color='#fff';this.style.borderColor='#5b8c5a';">Add to Cart</button>
+          </div>
+        </div>
+      </article>
+
+      <article class="plant-card">
+        <div class="plant-img succulent">🌵</div>
+        <div class="plant-info">
+          <h3>String of Pearls</h3>
+          <p class="botanical">&nbsp;Senecio rowleyanus</p>
+          <p class="desc">Delicate bead-like leaves cascading in beautiful strands. A low-water beauty that brightens any shelf or hanging display.</p>
+          <div class="plant-meta">
+            <span class="meta">&#127804;&nbsp;Easy Care</span>
+            <span class="meta">&#x2b07;&nbsp;Trailing to 3 ft</span>
+          </div>
+          <div class="price-row">
+            <span class="price">$12</span>
+            <button class="add-btn" onclick="this.textContent='Added ✓';this.style.background='#5b8c5a';this.style.color='#fff';this.style.borderColor='#5b8c5a';">Add to Cart</button>
+          </div>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer id="footer">
+    <div class="footer-inner">
+      <div class="brand-block">
+        <span class="flogo"><span>&#9671;</span>&nbsp;Leaf &amp; Root</span>
+        <p>Sourcing the finest greenery from around the world since 2019. Every plant is&nbsp;hand-selected for quality and resilience.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Shop</h4>
+        <ul>
+          <li><a href="#">All Plants</a></li>
+          <li><a href="#">Pots &amp; Planters</a></li>
+          <li><a href="#">Care Essentials</a></li>
+          <li><a href="#">Gift Cards</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Learn</h4>
+        <ul>
+          <li><a href="#">Plant Care Guides</a></li>
+          <li><a href="#">Blog</a></li>
+          <li><a href="#">Workshops</a></li>
+          <li><a href="#">FAQ</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Contact</h4>
+        <ul>
+          <li><a href="#">hello@leafandroot.com</a></li>
+          <li><a href="#">&#x260e;&nbsp;(503) 987-6542</a></li>
+          <li><a href="">&#x1f4dc;&nbsp;Portland, OR&nbsp;97214</a></li>
+        </ul>
+      </div>
+    </div>
+    <p class="foot-bottom">&copy; 2025 Leaf &amp; Root. All rights reserved.</p>
+  </footer>
+
+</body>
+</html>

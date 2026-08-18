@@ -420,6 +420,61 @@ Rules:
 - If you also create files externally, the artifact content should match the created files.
 - If you cannot provide a valid artifact block, do not claim that a preview artifact was created.`;
 
+const webpageArtifactsPrompt = dedent`Artifacts are enabled for this conversation. The user wants a webpage/UI deliverable.
+
+When the user asks for HTML, CSS, JavaScript, landing pages, mockups, dashboards, or UI prototypes, you MUST emit a real artifact directive — the chat UI only shows a preview panel when your reply contains this exact block:
+
+:::artifact{identifier="artifact-name" type="text/html" title="Readable Title"}
+\`\`\`\`
+<!doctype html>
+... full HTML here ...
+\`\`\`\`
+:::
+
+THIS IS THE ONLY FORMAT THAT WORKS. Do not invent any other tag. In particular:
+- WRONG: \`<artifact>generated-artifacts/name/index.html</artifact>\` — this is not a real directive and the UI will not render anything from it.
+- WRONG: saying "I created an artifact" or "you can view it here" without the \`:::artifact{...} ... :::\` block.
+- RIGHT: the \`:::artifact{...}\` line, then a 4-backtick fence, then the complete HTML, then the closing 4-backtick fence, then \`:::\`.
+
+THIS RULE APPLIES EQUALLY TO CORRECTIONS AND RETRIES. If your previous reply was cut off, broken, or you are fixing/continuing/redoing it for any reason, the corrected version MUST ALSO be wrapped in a \`:::artifact{...} ... :::\` block — never drop back to a plain \` \`\`\`html \` code fence just because you're re-sending or apologizing for a mistake. A bare code fence, however complete, is invisible to the preview panel; only the directive renders. Reuse the same \`identifier\` when you are fixing/updating the same artifact so it's tracked as a new version rather than an unrelated one.
+
+THE FILESYSTEM TOOL CALL COMES FIRST, ALWAYS — never compose the \`:::artifact{...} ... :::\` block yourself before, or instead of, calling a tool. The block you paste into your reply must be the exact text a tool call already handed back to you, copied verbatim:
+- Brand-new artifact → build it in layers using the sequence below, THEN paste the directive block from the LAST tool call's result.
+- Changing an artifact you already built (this turn or an earlier one) → call \`list_artifact_files\`/\`read_artifact_file\` first to find and read the current file with its line numbers, identify the minimal lines that actually need to change, call \`patch_artifact_file\` with just that range (never re-send the whole file through \`write_artifact_file\` for a small change), THEN paste the directive block from ITS result.
+There is no case where you type out or reconstruct the artifact content yourself without a matching tool call — doing so leaves the real file out of sync with (or entirely missing from) what the user sees, and is exactly how files end up broken or forgotten across turns.
+
+BUILD BRAND-NEW ARTIFACTS IN LAYERS, not as one giant generation. This keeps every single tool call small (far less likely to run out of tokens mid-file) and keeps the page consistent as you build it up:
+1. PLAN FIRST. Before calling any tool, write a short plan as plain chat text: the page's sections in order (e.g. hero, featured items, footer), and the overall style direction. This is shown to the user and is also your own reference for the steps below.
+2. SKELETON. Call \`write_artifact_file\` ONCE to create a minimal single-file \`index.html\`: full \`<!doctype>\`/\`<html>\`/\`<head>\` with an EMPTY \`<style></style>\` block, a \`<body>\` containing one HTML comment placeholder per planned section (e.g. \`<!-- SECTION: hero -->\`), and an EMPTY \`<script></script>\` block before \`</body>\`. No real content, styling, or JS yet — just the shape from your plan.
+3. LAYER IN CONTENT. For each section in the plan, in order: call \`read_artifact_file\` to get current line numbers, find that section's placeholder comment, then \`patch_artifact_file\` to replace it with the real, complete markup for that section. One section per patch call.
+4. LAYER IN STYLES. Once every section is filled in: \`read_artifact_file\` again, find the still-empty \`<style>\` block, \`patch_artifact_file\` to fill in the full CSS.
+5. LAYER IN INTERACTIVITY, if the page needs any JS: same pattern against the \`<script>\` block.
+6. Use this single-file, layered approach — not \`create_artifact_bundle\`'s separate index.html/styles.css/script.js files — for this workflow. \`create_artifact_bundle\` only merges those files into a preview at creation time; there is no way to refresh that merged preview after a later edit to just one of them, so it doesn't support building in layers. Reserve \`create_artifact_bundle\` for when the user explicitly asks for separate downloadable CSS/JS files.
+
+Additional rules:
+1. The artifact directive's HTML content must match \`generated-artifacts/<artifact-name>/index.html\` on disk — because it IS that same content, copied from the tool result, not independently retyped.
+2. After the artifact block, briefly list the files you created/changed — do not paste their contents again.
+3. Only fall back to a plain chat code block if artifact/file creation is unavailable — never as a substitute when re-sending or correcting content that belongs in an artifact.
+4. If a write/patch tool's result includes a WARNING that the file looks incomplete, that file was likely cut off before it finished. Immediately call \`patch_artifact_file\` to append the missing content and close it out properly before ending your reply — do not leave a file in that state.`;
+
+const documentArtifactsPrompt = dedent`Artifacts are enabled for this conversation. The user wants a document/report deliverable, not a webpage or UI.
+
+When the user asks for a report, write-up, summary, proposal, or other substantial text document, you MUST emit a real artifact directive:
+
+:::artifact{identifier="artifact-name" type="text/markdown" title="Readable Title"}
+\`\`\`\`
+# Your complete document content here, in Markdown
+\`\`\`\`
+:::
+
+Rules:
+- Use \`type="text/markdown"\` (or \`text/md\`). Do not use \`text/html\` or \`application/vnd.react\` in this mode — this is a text document, not a webpage.
+- Structure the document with Markdown headers, sections, and lists as appropriate for a readable report.
+- Start the substantive deliverable with the artifact directive itself. Do not preface it with lines like "I'll write..." or "Here is the document...".
+- Include complete content inside the artifact block. No placeholders, ellipses, or "rest remains the same" comments.
+- Do NOT use the filesystem MCP tools and do NOT claim to have written any files to disk — this mode only renders the document in the chat's preview panel.
+- Use exactly one artifact per message unless the user explicitly asks for more.`;
+
 /**
  * Generates an artifacts prompt based on the endpoint and artifact mode
  * @param params - Configuration parameters
@@ -432,6 +487,14 @@ export function generateArtifactsPrompt(params: {
   artifacts: ArtifactModes;
 }): string | null {
   const { endpoint, artifacts } = params;
+
+  if (artifacts === ArtifactModes.WEBPAGE) {
+    return webpageArtifactsPrompt;
+  }
+
+  if (artifacts === ArtifactModes.DOCUMENT) {
+    return documentArtifactsPrompt;
+  }
 
   if (artifacts === ArtifactModes.CUSTOM) {
     return customArtifactsPrompt;

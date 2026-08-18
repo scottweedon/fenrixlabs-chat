@@ -13,6 +13,7 @@ import { useMessageHelpers, useLocalize, useAttachments, useContentMetadata } fr
 import AuthorHeader from '~/components/Chat/Messages/Content/Parts/AuthorHeader';
 import MessageTimestamp from '~/components/Chat/Messages/ui/MessageTimestamp';
 import MessageIcon from '~/components/Chat/Messages/MessageIcon';
+import StreamingStatusIndicator from './StreamingStatusIndicator';
 import ContentParts from './Content/ContentParts';
 import { fontSizeAtom } from '~/store/fontSize';
 import SiblingSwitch from './SiblingSwitch';
@@ -174,7 +175,7 @@ function MessageParts(props: TMessageProps) {
                   />
                 </div>
                 {isLast && isSubmitting ? (
-                  <div className="mt-1 h-[31px] bg-transparent" />
+                  <StreamingStatusIndicator />
                 ) : (
                   <SubRow classes="text-xs">
                     <SiblingSwitch

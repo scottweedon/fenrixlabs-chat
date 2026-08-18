@@ -10,9 +10,9 @@ import {
   getMessageAriaLabel,
 } from '~/utils';
 import MessageContent from '~/components/Chat/Messages/Content/MessageContent';
+import StreamingStatusIndicator from '~/components/Chat/Messages/StreamingStatusIndicator';
 import MessageTimestamp from '~/components/Chat/Messages/ui/MessageTimestamp';
 import { useLocalize, useMessageActions, useContentMetadata } from '~/hooks';
-import PlaceholderRow from '~/components/Chat/Messages/ui/PlaceholderRow';
 import SiblingSwitch from '~/components/Chat/Messages/SiblingSwitch';
 import HoverButtons from '~/components/Chat/Messages/HoverButtons';
 import MessageIcon from '~/components/Chat/Messages/MessageIcon';
@@ -219,7 +219,7 @@ const MessageRender = memo(function MessageRender({
             </MessageContext.Provider>
           </div>
           {hasNoChildren && isSubmitting ? (
-            <PlaceholderRow />
+            <StreamingStatusIndicator />
           ) : (
             <SubRow classes="text-xs">
               <SiblingSwitch

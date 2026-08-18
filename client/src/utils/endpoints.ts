@@ -343,7 +343,7 @@ export function applyModelSpecEphemeralAgent({
     file_search: modelSpec.fileSearch ?? false,
     execute_code: modelSpec.executeCode ?? false,
     memory: modelSpec.memory ?? false,
-    artifacts: modelSpec.artifacts === true ? 'default' : modelSpec.artifacts || '',
+    artifacts: normalizeArtifactsMode(modelSpec.artifacts),
   };
 
   // For existing conversations, layer per-conversation localStorage overrides
@@ -383,6 +383,46 @@ export function applyModelSpecEphemeralAgent({
   }
 
   updateEphemeralAgent(key, agent);
+}
+
+/** Same normalization `applyModelSpecEphemeralAgent` uses for a modelSpec's `artifacts` field,
+ *  shared so a persisted Agent's own `artifacts` field maps to the same `ArtifactModes` shape. */
+export function normalizeArtifactsMode(artifacts: boolean | string | null | undefined): string {
+  return artifacts === true ? 'default' : artifacts || '';
+}
+
+/**
+ * Seeds `ephemeralAgent.artifacts` from a persisted Agent's own `artifacts` default (e.g. the
+ * "Web Designer" agent's `artifacts: "webpage"`) — the equivalent of `applyModelSpecEphemeralAgent`
+ * for modelSpecs, so an artifacts-enabled agent auto-opens the artifacts panel without the user
+ * needing to click the chat-input toggle. Only sets the field if the agent actually has a default;
+ * merges onto whatever ephemeral state already exists rather than replacing it, since (unlike a
+ * modelSpec) an Agent's `tools`/mcp config isn't expressed through this same ephemeral-agent shape.
+ */
+export function applyAgentEphemeralArtifacts({
+  convoId,
+  agent,
+  getEphemeralAgent,
+  updateEphemeralAgent,
+}: {
+  convoId?: string | null;
+  agent?: { artifacts?: boolean | string | null } | null;
+  getEphemeralAgent: (convoId: string) => t.TEphemeralAgent | null;
+  updateEphemeralAgent: ((convoId: string, agent: t.TEphemeralAgent | null) => void) | undefined;
+}) {
+  if (!agent || !updateEphemeralAgent) {
+    return;
+  }
+  const normalized = normalizeArtifactsMode(agent.artifacts);
+  if (!normalized) {
+    return;
+  }
+  const key = (convoId ?? Constants.NEW_CONVO) || Constants.NEW_CONVO;
+  const current = getEphemeralAgent(key) ?? ({} as t.TEphemeralAgent);
+  if (current.artifacts === normalized) {
+    return;
+  }
+  updateEphemeralAgent(key, { ...current, artifacts: normalized });
 }
 
 /**

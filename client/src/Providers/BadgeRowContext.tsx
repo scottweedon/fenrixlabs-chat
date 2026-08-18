@@ -9,8 +9,9 @@ import {
   useToolToggle,
 } from '~/hooks';
 import { getTimestampedValue } from '~/utils/timestamps';
-import { useGetStartupConfig } from '~/data-provider';
-import { ephemeralAgentByConvoId } from '~/store';
+import { normalizeArtifactsMode } from '~/utils/endpoints';
+import { useGetStartupConfig, useGetAgentByIdQuery } from '~/data-provider';
+import store, { ephemeralAgentByConvoId } from '~/store';
 
 interface BadgeRowContextType {
   conversationId?: string | null;
@@ -37,6 +38,7 @@ interface BadgeRowProviderProps {
   isSubmitting?: boolean;
   conversationId?: string | null;
   specName?: string | null;
+  agentId?: string | null;
 }
 
 export default function BadgeRowProvider({
@@ -44,13 +46,22 @@ export default function BadgeRowProvider({
   isSubmitting,
   conversationId,
   specName,
+  agentId,
 }: BadgeRowProviderProps) {
   const lastContextKeyRef = useRef<string>('');
+  const lastAgentIdRef = useRef<string | null | undefined>(undefined);
+  const lastAgentArtifactsDefaultRef = useRef<string>('');
   const hasInitializedRef = useRef(false);
   const { agentsConfig } = useGetAgentsConfig();
   const { data: startupConfig } = useGetStartupConfig();
   const key = conversationId ?? Constants.NEW_CONVO;
   const hasModelSpecs = (startupConfig?.modelSpecs?.list?.length ?? 0) > 0;
+  /** Only fetched to read this agent's own `artifacts` default (auto-opens the panel for
+   *  agents built to always use artifacts, e.g. Web Designer) — no spec active takes priority,
+   *  same as the modelSpec branch below. Shares the `[QueryKeys.agent, agentId]` cache key with
+   *  any other place already fetching this agent, so this isn't a duplicate request. */
+  const { data: agentData } = useGetAgentByIdQuery(specName ? null : agentId);
+  const agentArtifactsDefault = normalizeArtifactsMode(agentData?.artifacts);
 
   /**
    * Compute the storage context key for non-spec persistence:
@@ -91,10 +102,21 @@ export default function BadgeRowProvider({
       hasInitializedRef.current = false;
       return;
     }
-    // Check if this is a new conversation/spec or the first load
-    if (!hasInitializedRef.current || lastContextKeyRef.current !== storageSuffix) {
+    // Check if this is a new conversation/spec/agent selection, or the first load — an agent
+    // pick before any message is sent doesn't change `storageSuffix` (still NEW_CONVO), so its
+    // own default would otherwise never get applied without this separate check. Also re-check
+    // when the agent's `artifacts` default itself changes value — `useGetAgentByIdQuery` resolves
+    // asynchronously, often after `agentId` has already been "seen" once with no default yet.
+    if (
+      !hasInitializedRef.current ||
+      lastContextKeyRef.current !== storageSuffix ||
+      lastAgentIdRef.current !== agentId ||
+      lastAgentArtifactsDefaultRef.current !== agentArtifactsDefault
+    ) {
       hasInitializedRef.current = true;
       lastContextKeyRef.current = storageSuffix;
+      lastAgentIdRef.current = agentId;
+      lastAgentArtifactsDefaultRef.current = agentArtifactsDefault;
 
       const codeToggleKey = `${LocalStorageKeys.LAST_CODE_TOGGLE_}${storageSuffix}`;
       const webSearchToggleKey = `${LocalStorageKeys.LAST_WEB_SEARCH_TOGGLE_}${storageSuffix}`;
@@ -136,12 +158,24 @@ export default function BadgeRowProvider({
         }
       }
 
-      if (artifactsToggleValue !== null) {
+      /**
+       * For a brand-new conversation, the selected agent's own default wins outright — same
+       * precedent as the modelSpec branch above ("the admin's spec configuration is always
+       * applied fresh"). A generic "last used" preference from some earlier, unrelated chat
+       * should not silently suppress an agent that was specifically built to always use
+       * artifacts. For an existing conversation, respect whatever was already explicitly set
+       * for it (localStorage first, agent default only as a fallback when unset).
+       */
+      if (isNewConvo && agentArtifactsDefault) {
+        initialValues[AgentCapabilities.artifacts] = agentArtifactsDefault;
+      } else if (artifactsToggleValue !== null) {
         try {
           initialValues[AgentCapabilities.artifacts] = JSON.parse(artifactsToggleValue);
         } catch (e) {
           console.error('Failed to parse artifacts toggle value:', e);
         }
+      } else if (agentArtifactsDefault) {
+        initialValues[AgentCapabilities.artifacts] = agentArtifactsDefault;
       }
 
       if (skillsToggleValue !== null) {
@@ -206,7 +240,7 @@ export default function BadgeRowProvider({
         return changed ? result : prev;
       });
     }
-  }, [storageSuffix, specName, isSubmitting, setEphemeralAgent]);
+  }, [storageSuffix, specName, agentId, isSubmitting, setEphemeralAgent, agentArtifactsDefault]);
 
   /** CodeInterpreter hook — sandbox auth is handled server-side by the
    *  agents library, so the toggle no longer has an auth dialog gate. */
@@ -252,6 +286,20 @@ export default function BadgeRowProvider({
     localStorageKey: LocalStorageKeys.LAST_ARTIFACTS_TOGGLE_,
     isAuthenticated: true,
   });
+
+  const setPanelPinned = useSetRecoilState(store.artifactsPanelPinned(key));
+  /**
+   * Keep the artifacts side panel's pin in sync with the resolved toggle state, mirroring
+   * `Chat/Input/Artifacts.tsx`'s own pin-sync effect. That component is the ONLY other place
+   * doing this, but it never mounts for the `agents` endpoint at all — `ChatForm.tsx` passes
+   * `showEphemeralBadges={... && !isAgentsEndpoint(endpoint) && ...}`, so the badge (and its
+   * effect) simply doesn't exist for agent conversations. This provider always mounts
+   * regardless of endpoint, so it's the one place that can reliably auto-open the panel for
+   * an artifacts-enabled Agent.
+   */
+  useEffect(() => {
+    setPanelPinned(!!artifacts.toggleState);
+  }, [artifacts.toggleState, setPanelPinned]);
 
   /** Skills hook - using a custom key since it's not a Tool but a capability */
   const skills = useToolToggle({

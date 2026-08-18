@@ -1,6 +1,20 @@
 import type { TFile } from './types/files';
 import type { TMessage } from './types';
 
+/** Normalized `finish_reason` values meaning the model was cut off by its
+ *  output token cap, as opposed to a natural stop, a user abort
+ *  (`incomplete`), or a content filter (`content_filter`/`refusal`). */
+export const TRUNCATED_FINISH_REASONS = ['length', 'max_tokens'] as const;
+
+export function isTruncatedFinishReason(
+  finishReason: string | null | undefined,
+): finishReason is (typeof TRUNCATED_FINISH_REASONS)[number] {
+  return (
+    finishReason != null &&
+    (TRUNCATED_FINISH_REASONS as readonly string[]).includes(finishReason)
+  );
+}
+
 export type ParentMessage = TMessage & { children: TMessage[]; depth: number };
 /**
  * Builds the render tree from the flat messages array. Order-robust: live

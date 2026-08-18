@@ -11,9 +11,9 @@ import {
 } from '~/utils';
 import { useAttachments, useLocalize, useMessageActions, useContentMetadata } from '~/hooks';
 import AuthorHeader from '~/components/Chat/Messages/Content/Parts/AuthorHeader';
+import StreamingStatusIndicator from '~/components/Chat/Messages/StreamingStatusIndicator';
 import MessageTimestamp from '~/components/Chat/Messages/ui/MessageTimestamp';
 import ContentParts from '~/components/Chat/Messages/Content/ContentParts';
-import PlaceholderRow from '~/components/Chat/Messages/ui/PlaceholderRow';
 import SiblingSwitch from '~/components/Chat/Messages/SiblingSwitch';
 import HoverButtons from '~/components/Chat/Messages/HoverButtons';
 import MessageIcon from '~/components/Chat/Messages/MessageIcon';
@@ -224,7 +224,7 @@ const ContentRender = memo(function ContentRender({
             />
           </div>
           {hasNoChildren && isSubmitting ? (
-            <PlaceholderRow />
+            <StreamingStatusIndicator />
           ) : (
             <SubRow classes="text-xs">
               <SiblingSwitch

@@ -1,0 +1,478 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Roasted Bean — Artisan Coffee & Pastries</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --espresso: #3B2314;
+      --mocha: #6F4E37;
+      --caramel: #C8965C;
+      --cream: #F5EDE0;
+      --latte: #EDE0D0;
+      --white: #FFFDF8;
+      --accent: #B8860B;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--white);
+      color: var(--espresso);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* NAV */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 1rem 3vw;
+      background: rgba(255,253,248,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(111,78,55,0.08);
+      transition: box-shadow 0.3s;
+    }
+    nav.scrolled { box-shadow: 0 2px 24px rgba(59,35,20,0.08); }
+
+    .logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem; font-weight: 700; color: var(--espresso);
+      text-decoration: none;
+    }
+    .logo span { color: var(--caramel); }
+
+    .nav-links { display: flex; gap: 2rem; list-style: none; align-items: center; }
+    .nav-links a {
+      text-decoration: none; color: var(--mocha); font-weight: 500;
+      font-size: 0.95rem; position: relative; transition: color 0.3s;
+    }
+    .nav-links a::after {
+      content: ''; position: absolute; bottom: -4px; left: 0;
+      width: 0; height: 2px; background: var(--caramel);
+      transition: width 0.3s;
+    }
+    .nav-links a:hover { color: var(--espresso); }
+    .nav-links a:hover::after { width: 100%; }
+
+    .cta-btn {
+      background: var(--espresso); color: var(--cream) !important;
+      padding: 0.6rem 1.5rem; border-radius: 50px;
+      transition: background 0.3s, transform 0.2s;
+    }
+    .cta-btn::after { display: none !important; }
+    .cta-btn:hover { background: var(--mocha); transform: translateY(-1px); }
+
+    .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; background: none; border: none; }
+    .hamburger span { display: block; width: 26px; height: 2px; background: var(--espresso); transition: 0.3s; border-radius: 2px; }
+
+    /* HERO */
+    .hero {
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      position: relative; overflow: hidden;
+      background: linear-gradient(135deg, var(--espresso) 0%, #5A3825 50%, var(--mocha) 100%);
+    }
+    .hero::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 30% 50%, rgba(200,150,92,0.15) 0%, transparent 70%);
+    }
+
+    .hero-content {
+      text-align: center; color: var(--cream); position: relative; z-index: 1;
+      max-width: 750px; padding: 6rem 2rem 4rem;
+      animation: fadeUp 1s ease-out;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .hero h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.8rem, 7vw, 5rem); font-weight: 700;
+      line-height: 1.1; margin-bottom: 1.5rem;
+    }
+    .hero h1 em { color: var(--caramel); font-style: normal; }
+
+    .hero p {
+      font-size: clamp(1rem, 2vw, 1.25rem); opacity: 0.85;
+      max-width: 550px; margin: 0 auto 2.5rem; font-weight: 300;
+    }
+
+    .hero-buttons { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .btn-primary {
+      background: var(--caramel); color: var(--espresso); font-weight: 600;
+      padding: 0.9rem 2.5rem; border-radius: 50px; text-decoration: none;
+      transition: transform 0.2s, box-shadow 0.3s; display: inline-block;
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(200,150,92,0.4); }
+    .btn-outline {
+      border: 2px solid rgba(245,237,224,0.4); color: var(--cream); font-weight: 500;
+      padding: 0.85rem 2.5rem; border-radius: 50px; text-decoration: none;
+      transition: border-color 0.3s, background 0.3s; display: inline-block;
+    }
+    .btn-outline:hover { border-color: var(--cream); background: rgba(255,255,255,0.08); }
+
+    .scroll-hint {
+      position: absolute; bottom: 2rem; left: 50%; transform: translateX(-50%);
+      color: var(--cream); opacity: 0.5; font-size: 0.85rem; text-align: center;
+      animation: bobble 2s infinite ease-in-out;
+    }
+    @keyframes bobble { 0%,100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(8px); } }
+
+    /* SECTION COMMONS */
+    section { padding: 6rem 3vw; }
+    .section-label {
+      display: inline-block; font-size: 0.8rem; letter-spacing: 3px;
+      text-transform: uppercase; color: var(--caramel); font-weight: 600; margin-bottom: 0.75rem;
+    }
+    .section-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2rem, 4vw, 3rem); margin-bottom: 1rem; color: var(--espresso);
+    }
+    .section-desc {
+      max-width: 600px; color: var(--mocha); opacity: 0.8; font-weight: 300; font-size: 1.05rem;
+    }
+
+    /* ABOUT */
+    .about { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; max-width: 1200px; margin: 0 auto; }
+    .about-img {
+      width: 100%; aspect-ratio: 4/5; border-radius: 20px;
+      background: linear-gradient(160deg, var(--latte), var(--cream));
+      display: flex; align-items: center; justify-content: center; font-size: 8rem;
+      position: relative; overflow: hidden; box-shadow: 0 20px 60px rgba(59,35,20,0.1);
+    }
+    .about-img::before {
+      content: ''; position: absolute; inset: 12px; border-radius: 16px;
+      border: 2px dashed var(--caramel); opacity: 0.3;
+    }
+    .about-text { padding: 1rem 0; }
+
+    /* FEATURES */
+    .features-section { background: var(--cream); }
+    .features-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 2rem; max-width: 1100px; margin: 3rem auto 0;
+    }
+    .feature-card {
+      background: var(--white); border-radius: 16px; padding: 2.5rem 2rem;
+      transition: transform 0.3s, box-shadow 0.3s; text-align: center;
+    }
+    .feature-card:hover { transform: translateY(-6px); box-shadow: 0 12px 40px rgba(59,35,20,0.08); }
+    .feature-icon { font-size: 3rem; margin-bottom: 1rem; }
+    .feature-card h3 {
+      font-family: 'Playfair Display', serif; font-size: 1.3rem;
+      margin-bottom: 0.75rem; color: var(--espresso);
+    }
+    .feature-card p { font-size: 0.95rem; color: var(--mocha); opacity: 0.8; }
+
+    /* MENU */
+    .menu-section { max-width: 1100px; margin: 0 auto; }
+    .menu-header { text-align: center; margin-bottom: 3rem; }
+    .menu-header .section-desc { margin: 0.5rem auto 0; }
+
+    .menu-tabs { display: flex; justify-content: center; gap: 0.5rem; margin-bottom: 2.5rem; flex-wrap: wrap; }
+    .menu-tab {
+      padding: 0.55rem 1.5rem; border-radius: 50px; border: none; cursor: pointer;
+      font-size: 0.9rem; font-weight: 500; background: transparent;
+      color: var(--mocha); transition: 0.3s;
+    }
+    .menu-tab.active, .menu-tab:hover { background: var(--espresso); color: var(--cream); }
+
+    .menu-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
+    .menu-item {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      padding: 1.25rem 1.5rem; border-radius: 14px;
+      border: 1px solid rgba(111,78,55,0.08); transition: 0.3s;
+    }
+    .menu-item:hover { border-color: var(--caramel); background: rgba(200,150,92,0.04); }
+    .menu-item-info h4 { font-size: 1.05rem; margin-bottom: 0.3rem; color: var(--espresso); }
+    .menu-item-info p  { font-size: 0.85rem; color: var(--mocha); opacity: 0.7; }
+    .menu-item .price { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1.15rem; color: var(--caramel); white-space: nowrap; margin-left: 1rem; }
+
+    /* TESTIMONIALS */
+    .testimonials { background: var(--espresso); color: var(--cream); text-align: center; }
+    .testimonials .section-title { color: var(--cream); }
+    .testimonial-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; max-width: 1000px; margin: 3rem auto 0; }
+    .testimonial-card {
+      background: rgba(255,255,255,0.06); border-radius: 16px; padding: 2rem;
+      text-align: left; position: relative;
+    }
+    .testimonial-card::before { content: '"'; font-family: 'Playfair Display', serif; font-size: 4rem; color: var(--caramel); opacity: 0.5; position: absolute; top: 0.5rem; left: 1.5rem; }
+    .testimonial-card p { padding-top: 2rem; margin-bottom: 1.5rem; font-style: italic; opacity: 0.9; line-height: 1.7; }
+    .testimonial-author { font-weight: 600; color: var(--caramel); }
+
+    /* VISIT US */
+    .visit-section { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: start; }
+    .info-card {
+      background: var(--cream); border-radius: 20px; padding: 3rem;
+      box-shadow: 0 10px 40px rgba(59,35,20,0.06);
+    }
+    .info-row { display: flex; gap: 1rem; align-items: flex-start; margin-bottom: 2rem; }
+    .info-icon { font-size: 1.8rem; flex-shrink: 0; }
+    .info-card h4 { font-family: 'Playfair Display', serif; margin-bottom: 0.3rem; color: var(--espresso); }
+    .info-card p { font-size: 0.95rem; color: var(--mocha); }
+
+    .map-placeholder {
+      width: 100%; height: 100%; min-height: 380px; border-radius: 20px;
+      background: linear-gradient(160deg, var(--latte), #ddd5c7);
+      display: flex; align-items: center; justify-content: center; font-size: 4rem;
+      border: 3px dashed rgba(111,78,55,0.15);
+    }
+
+    /* CTA BANNER */
+    .cta-banner {
+      text-align: center; padding: 5rem 3vw;
+      background: linear-gradient(135deg, var(--caramel), var(--accent));
+    }
+    .cta-banner h2 {
+      font-family: 'Playfair Display', serif; font-size: clamp(1.8rem, 4vw, 2.8rem);
+      color: var(--espresso); margin-bottom: 1rem;
+    }
+    .cta-banner p { opacity: 0.85; max-width: 500px; margin: 0 auto 2rem; font-size: 1.05rem; }
+
+    /* FOOTER */
+    footer {
+      background: var(--espresso); color: rgba(245,237,224,0.6); padding: 4rem 3vw 2rem;
+    }
+    .footer-grid {
+      display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 3rem;
+      max-width: 1100px; margin: 0 auto;
+    }
+    .footer-brand { font-family: 'Playfair Display', serif; font-size: 1.5rem; color: var(--cream); margin-bottom: 1rem; }
+    .footer-col h4 { color: var(--cream); margin-bottom: 1rem; font-size: 0.95rem; letter-spacing: 1px; text-transform: uppercase; }
+    .footer-col a { display: block; color: rgba(245,237,224,0.6); text-decoration: none; margin-bottom: 0.6rem; font-size: 0.9rem; transition: color 0.3s; }
+    .footer-col a:hover { color: var(--caramel); }
+
+    .footer-bottom {
+      border-top: 1px solid rgba(245,237,224,0.1); margin-top: 3rem; padding-top: 2rem;
+      text-align: center; font-size: 0.85rem; max-width: 1100px; margin-left: auto; margin-right: auto;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+      .nav-links { 
+        display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+        flex-direction: column; justify-content: center; align-items: center;
+        background: rgba(255,253,248,0.98); gap: 2rem; z-index: 99;
+      }
+      .nav-links.open { display: flex; }
+      .hamburger { display: flex; z-index: 101; }
+
+      .about, .visit-section { grid-template-columns: 1fr !important; }
+      .about-img { max-height: 350px; aspect-ratio: auto; }
+      .footer-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    /* SCROLL ANIMATIONS */
+    .reveal { opacity: 0; transform: translateY(40px); transition: opacity 0.8s ease, transform 0.8s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="navbar">
+  <a href="#" class="logo">The Roasted<span>Bean</span></a>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="#about">About</a></li>
+    <li><a href="#menu">Menu</a></li>
+    <li><a href="#visit">Visit</a></li>
+    <li><a href="#visit" class="cta-btn">Order Now</a></li>
+  </ul>
+  <button class="hamburger" id="hamburger" aria-label="Menu"><span></span><span></span><span></span></button>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-content">
+    <p style="letter-spacing:3px;text-transform:uppercase;font-size:0.85rem;color:var(--caramel);font-weight:600;margin-bottom:1.5rem;">Est. 2019 · Artisan Roasters</p>
+    <h1>Brewed with <em>Passion</em>, Served with Love</h1>
+    <p>Handcrafted coffee, fresh-baked pastries, and a cozy corner of the city made just for you.</p>
+    <div class="hero-buttons">
+      <a href="#menu" class="btn-primary">Explore Our Menu</a>
+      <a href="#visit" class="btn-outline">Find Us</a>
+    </div>
+  </div>
+  <div class="scroll-hint">↓ Scroll to discover</div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="about">
+    <div class="about-img reveal">☕</div>
+    <div class="about-text reveal">
+      <span class="section-label">Our Story</span>
+      <h2 class="section-title">Where Every Cup Tells a Story</h2>
+      <p style="color:var(--mocha);opacity:0.85;margin-bottom:1.5rem;font-size:1.05rem;">
+        Born from a love of single-origin beans and the art of slow mornings, The Cozy Cafe started as a tiny cart on Maple Street. Today, we're your neighborhood destination for coffee done right — ethically sourced beans roasted in small batches, pastries made fresh every dawn, and an atmosphere that feels like home.
+      <a href="#menu" class="btn-primary" style="margin-top:0.5rem;">Discover More</a>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features-section">
+  <div style="text-align:center;max-width:650px;margin:0 auto;">
+    <span class="section-label reveal">Why Choose Us</span>
+    <h2 class="section-title reveal">More Than Just Coffee</h2>
+  </div>
+  <div class="features-grid">
+    <div class="feature-card reveal"><div class="feature-icon">🌱</div><h3>Ethically Sourced</h3><p>We partner directly with farmers in Colombia, Ethiopia, and Guatemala to bring you the finest beans.</p></div>
+    <div class="feature-card reveal"><div class="feature-icon">🔥</div><h3>Small-Batch Roasted</h3><p>Every batch is roasted in-house on Tuesdays, ensuring peak flavor in every cup you order.</p></div>
+    <div class="feature-card reveal"><div class="feature-icon">🥐</div><h3>Fresh Daily Pastries</h3><p>Our in-house baker starts at 4 AM so your morning croissant is always warm and flaky.</p></div>
+    <div class="feature-card reveal"><div class="feature-icon">💚</div><h3>Eco-Friendly</h3><p>Compostable cups, zero-waste goals, and solar panels keep our carbon footprint light.</p></div>
+  </div>
+</section>
+
+<!-- MENU -->
+<section id="menu" class="menu-section">
+  <div class="menu-header reveal">
+    <span class="section-label">Our Menu</span>
+    <h2 class="section-title">Crafted Just for You</h2>
+    <p class="section-desc">From classic espresso drinks to signature seasonal specials — there's something to satisfy every palate.</p>
+  </div>
+
+  <div class="menu-tabs reveal">
+    <button class="menu-tab active" data-tab="coffee">Coffee</button>
+    <button class="menu-tab" data-tab="tea">Tea & More</button>
+    <button class="menu-tab" data-tab="pastry">Pastries</button>
+  </div>
+
+  <div class="menu-grid reveal" id="menuGrid">
+    <!-- Filled by JS -->
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="testimonials">
+  <span class="section-label reveal" style="color:var(--caramel);">Kind Words</span>
+  <h2 class="section-title reveal">What Our Regulars Say</h2>
+  <div class="testimonial-cards">
+    <div class="testimonial-card reveal"><p>I've been coming here every morning for two years. The staff knows my name — and my order. Feels like family.</p><span class="testimonial-author">— Maya R., Daily Visitor</span></div>
+    <div class="testimonial-card reveal"><p>Their Ethiopian Yirgacheisse is hands-down the best single-origin pour-over I've had outside of Addis Ababa.</p><span class="testimonial-author">— James T., Coffee Blogger</span></div>
+    <div class="testimonial-card reveal><p>The matcha latte and almond croissant combo? Absolute perfection. Worth every penny.</p><span class="testimonial-author">—— Sarah L, Weekend Regular</span></div>
+  </div>
+</section>
+
+<!-- VISIT US -->
+<section id="visit">
+  <div style="text-align:center;max-width:650px;margin:0 auto 3rem;">
+    <span class="section-label reveal" style="display:block;text-align:center;">Visit Us</span>
+    <h2 class="section-title reveal">Come Say Hello</h2>
+  </div>
+  <div class="visit-section">
+    <div class="info-card reveal">
+      <div class="info-row"><div class="info-icon">📍</div><div><h4>Address</h4><p>742 Maple Street<br/>Portland, OR 97205</p></div></div>
+      <div class="info-row"><div class="info-icon">🕐</div><div><h4>Hours</h4><p>Mon – Fri: 6 AM – 8 PM<br/>Sat & Sun: 7 AM – 9 PM</p></div></div>
+      <div class="info-row"><div class="info-icon">📞</div><div><h4>Contact</h4><p>(503) 555-BREW<br/>hello@theroastedbean.com</p></div></div>
+      <div class="info-row"><div class="info-icon">🅿️</div><div><h4>Parking</h4><p>Free street parking &amp; public garage two blocks east.</p></div></div>
+    </div>
+    <div class="map-placeholder reveal">🗺️</div>
+  </div>
+</section>
+
+<!-- CTA BANNER -->
+<section class="cta-banner reveal">
+  <h2>Your Morning Ritual Starts Here.</h2>
+  <p>Walk in today — or order a bag of our signature roasts to take home. Either way, it'll be worth it.</p>
+  <a href="#visit" class="btn-primary" style="background:var(--espresso);color:var(--cream);">Visit Us Today</a>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-grid">
+    <div>
+      <div class="footer-brand">The Roasted<span style="color:var(--caramel)">Bean</span></div>
+      <p style="max-width:300px;line-height:1.7;">Artisan coffee, fresh pastries,<br/>and a cozycorner of Portland<br/>you'll never want to leave.</p>
+    </div>
+    <div class="footer-col"><h4>Navigate</h4><a href="#about">Our Story</a><a href="#menu">Menu</a><a href="#visit">Visit Us</a></div>
+    <div class="footer-col"><h4>Follow</h4><a href="#">Instagram</a><a href="#">Facebook</a><a href="#">TikTok</a></div>
+    <div class="footer-col"><h4>Legal</h4><a href="#">Privacy Policy</a><a href="#">Terms of Service</a></div>
+  </div>
+  <p class="footer-bottom">© 2025 The Roasted Bean. All rights reserved. Made with ☕ and ❤️ Portland.</p>
+</footer>
+
+<script>
+// NAV SCROLL EFFECT
+const nav = document.getElementById('navbar');
+window.addEventListener('scroll', () => nav.classList.toggle('scrolled', window.scrollY > 40));
+
+// HAMBURGER MENU
+const hamburger = document.getElementById('hamburger');
+const navLinks = document.getElementById('navLinks');
+hamburger.addEventListener('click', () => {
+  navLinks.classList.toggle('open');
+  const spans = hamburger.querySelectorAll('span');
+  if (navLinks.classList.contains('open')) {
+    spans[0].style.transform = 'rotate(45deg) translate(5px,5px)';
+    spans[1].style.opacity = '0';
+    spans[2].style.transform = 'rotate(-45deg) translate(5px,-5px)';
+  } else {
+    spans[0].style.transform = '';
+    spans[1].style.opacity = '';
+    spans[2].style.transform = '';
+  }
+});
+
+// MENU DATA & TABS
+const menuItems = {
+  coffee: [
+    ['Espresso', 'Rich, bold single origin shot', '$3.50'],
+    ['Cappuccino', 'Double shot, velvety steamed milk', '$5.00'],
+    ['Latte', 'Smooth espresso with creamy microfoam', '$5.50'],
+    ['Pour Over — Yirgacheisse', 'Floral, bright, tea-like body', '$6.00'],
+    ['Cold Brew', '20-hour steeped, low-acid finish', '$5.00'],
+    ['Caramel Macchiato', 'Vanilla, steamed milk, espresso drizzle', '$6.00'],
+  ],
+  tea: [
+    ['Matcha Latte', 'Ceremonial-grade matcha, your milk of choice', '$5.50'],
+    ['Chai Lavazza', 'House-spiced chai, black tea base', '$5.00'],
+    ['English Breakfast', 'Full-bodied loose-leaf blend', '$4.00'],
+    ['Honey Lemon Ginger', 'Fresh ginger, wildflower honey squeeze', '$5.00'],
+  ],
+  pastry: [
+    ['Butter Croissant (Classic)', 'Flaky, golden, baked at dawn', '$3.75'],
+    ['Almond Croissant', 'Frosted frangipane dusted with powdered sugar', '$4.50'],
+    ['Blueberry Scone', 'With lemon glaze and clotted cream option', '$4.00'],
+    ['Chocolate Chip Biscotti', 'Twice-baked, perfect for dipping', '$3.25'],
+    ['Banana Walnut Bread', '/ slice — served warm with butter', '$4.50'],
+  ]
+};
+
+function renderMenu(category) {
+  const grid = document.getElementById('menuGrid');
+  grid.innerHTML = menuItems[category].map(([name, desc, price]) => `
+    <div class="menu-item">
+      <div class="menu-item-info"><h4>${name}</h4><p>${desc}</p></div>
+      <span class="price">${price}</span>
+    </div>
+  `).join('');
+}
+
+document.querySelectorAll('.menu-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelector('.menu-tab.active')?.classList.remove('active');
+    tab.classList.add('active');
+    renderMenu(tab.dataset.tab);
+  });
+});
+renderMenu('coffee');
+
+// SCROLL REVEAL
+const reveals = document.querySelectorAll('.reveal');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); } });
+}, { threshold: 0.15 });
+reveals.forEach(el => observer.observe(el));
+</script>
+
+</body>
+</html>
+</html>

@@ -1,0 +1,462 @@
+/* Leaf & Root - Plant Shop Styles */
+
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  color: #2d3a2e;
+  background-color: #faf9f6;
+  line-height: 1.6;
+}
+
+/* ---- Navigation ---- */
+
+nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(250, 249, 246, 0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(45, 58, 46, 0.08);
+}
+
+nav .logo {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #2d3a2e;
+  text-decoration: none;
+  letter-spacing: -0.02em;
+}
+
+nav .logo span {
+  color: #5b8c5a;
+}
+
+nav ul {
+  list-style: none;
+  display: flex;
+  gap: 2rem;
+}
+
+nav ul li a {
+  text-decoration: none;
+  color: #2d3a2e;
+  font-size: 0.9rem;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  transition: color 0.3s;
+}
+
+nav ul li a:hover {
+  color: #5b8c5a;
+}
+
+/* ---- Hero Section ---- */
+
+.hero {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 6rem 2rem 4rem;
+  background: linear-gradient(160deg, #eef3ec 0%, #faf9f6 50%, #f2efe8 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -30%;
+  right: -15%;
+  width: 60vw;
+  height: 60vw;
+  max-width: 700px;
+  max-height: 700px;
+  background: radial-gradient(circle, rgba(91, 140, 90, 0.08) 0%, transparent 70%);
+  border-radius: 50%;
+}
+
+.hero::after {
+  content: '';
+  position: absolute;
+  bottom: -20%;
+  left: -10%;
+  width: 40vw;
+  height: 40vw;
+  max-width: 500px;
+  max-height: 500px;
+  background: radial-gradient(circle, rgba(186, 163, 127, 0.1) 0%, transparent 70%);
+  border-radius: 50%;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 1;
+  max-width: 720px;
+}
+
+.hero-badge {
+  display: inline-block;
+  padding: 0.4rem 1.2rem;
+  background: rgba(91, 140, 90, 0.1);
+  color: #5b8c5a;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border-radius: 50px;
+  margin-bottom: 1.5rem;
+}
+
+.hero h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(3rem, 7vw, 5.5rem);
+  font-weight: 700;
+  line-height: 1.05;
+  color: #1e2b1f;
+  margin-bottom: 1.5rem;
+  letter-spacing: -0.03em;
+}
+
+.hero h1 em {
+  font-style: italic;
+  color: #5b8c5a;
+}
+
+.hero p {
+  font-size: 1.15rem;
+  color: #5a6b5d;
+  max-width: 500px;
+  margin: 0 auto 2.5rem;
+  font-weight: 300;
+  line-height: 1.7;
+}
+
+.hero-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 1rem 2.4rem;
+  background-color: #5b8c5a;
+  color: #fff;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-radius: 50px;
+  transition: background-color 0.3s, transform 0.3s;
+}
+
+.hero-cta:hover {
+  background-color: #4a7449;
+  transform: translateY(-2px);
+}
+
+.hero-cta svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ---- Featured Plants Section ---- */
+
+.featured {
+  padding: 6rem 2rem;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.section-header {
+  text-align: center;
+  margin-bottom: 4rem;
+}
+
+.section-header span {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #5b8c5a;
+  margin-bottom: 0.8rem;
+}
+
+.section-header h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 600;
+  color: #1e2b1f;
+  letter-spacing: -0.02em;
+}
+
+.plant-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+.plant-card {
+  background: #fff;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(45, 58, 46, 0.04), 0 8px 32px rgba(45, 58, 46, 0.04);
+  transition: transform 0.4s, box-shadow 0.4s;
+}
+
+.plant-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 4px 12px rgba(45, 58, 46, 0.06), 0 16px 48px rgba(45, 58, 46, 0.07);
+}
+
+.plant-image {
+  width: 100%;
+  height: 280px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.plant-image.wild-monstera {
+  background: linear-gradient(135deg, #d4e8cc 0%, #b7d6a9 100%);
+}
+
+.plant-image.fiddle-leaf {
+  background: linear-gradient(135deg, #e8dcc8 0%, #d9c9ab 100%);
+}
+
+.plant-image.hanging-succulent {
+  background: linear-gradient(135deg, #c4ddf0 0%, #a8cce4 100%);
+}
+
+.plant-info {
+  padding: 1.8rem;
+}
+
+.plant-info .common-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: #1e2b1f;
+  margin-bottom: 0.2rem;
+}
+
+.plant-info .botanical-name {
+  font-style: italic;
+  font-size: 0.85rem;
+  color: #7a8b7c;
+  margin-bottom: 1rem;
+}
+
+.plant-info .description {
+  font-size: 0.9rem;
+  color: #5a6b5d;
+  line-height: 1.65;
+  margin-bottom: 1.4rem;
+}
+
+.plant-meta {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.4rem;
+}
+
+.meta-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.7rem;
+  background: #f2f5f0;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  color: #5a6b5d;
+}
+
+.meta-tag svg {
+  width: 13px;
+  height: 13px;
+  stroke: #5b8c5a;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.plant-price {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.price {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #2d3a2e;
+}
+
+.add-btn {
+  padding: 0.6rem 1.4rem;
+  background-color: transparent;
+  border: 1.5px solid #5b8c5a;
+  color: #5b8c5a;
+  border-radius: 50px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.add-btn:hover {
+  background-color: #5b8c5a;
+  color: #fff;
+}
+
+/* ---- Footer ---- */
+
+footer {
+  background-color: #1e2b1f;
+  color: #b7c4b0;
+  padding: 4rem 2rem 2.5rem;
+}
+
+.footer-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr 1fr;
+  gap: 3rem;
+}
+
+.footer-brand .footer-logo {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #faf9f6;
+  margin-bottom: 0.8rem;
+}
+
+.footer-brand .footer-logo span {
+  color: #5b8c5a;
+}
+
+.footer-brand p {
+  font-size: 0.85rem;
+  line-height: 1.7;
+  max-width: 260px;
+}
+
+.footer-col h4 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #faf9f6;
+  margin-bottom: 1rem;
+}
+
+.footer-col ul {
+  list-style: none;
+}
+
+.footer-col ul li {
+  margin-bottom: 0.5rem;
+}
+
+.footer-col ul li a {
+  color: #b7c4b0;
+  text-decoration: none;
+  font-size: 0.85rem;
+  transition: color 0.3s;
+}
+
+.footer-col ul li a:hover {
+  color: #faf9f6;
+}
+
+.footer-bottom {
+  max-width: 1100px;
+  margin: 3rem auto 0;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+  color: #7a8b7c;
+}
+
+.footer-bottom a {
+  color: #7a8b7c;
+  text-decoration: none;
+}
+
+.footer-bottom a:hover {
+  color: #faf9f6;
+}
+
+/* ---- Responsive ---- */
+
+@media (max-width: 768px) {
+  nav ul {
+    gap: 1.2rem;
+  }
+
+  .footer-inner {
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+  }
+
+  .footer-bottom {
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: center;
+  }
+
+  .hero {
+    padding: 7rem 1.5rem 3rem;
+  }
+}
+
+@media (max-width: 480px) {
+  nav ul {
+    display: none;
+  }
+
+  .footer-inner {
+    grid-template-columns: 1fr;
+  }
+
+  .plant-grid {
+    grid-template-columns: 1fr;
+  }
+}

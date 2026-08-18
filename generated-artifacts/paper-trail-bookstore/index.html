@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paper Trail — A Curated Bookstore</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --cream:   #faf6f1;
+      --warm:    #e8ddd3;
+      --brown:   #5c4a3a;
+      --dark:    #2e2520;
+      --accent:  #c97b4b;
+      --green:   #6b9f7a;
+      --white:   #ffffff;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--cream);
+      color: var(--dark);
+      line-height: 1.6;
+    }
+
+    /* NAV */
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.25rem 3rem;
+      background: var(--dark);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    nav .logo {
+      font-family: 'Playfair Display', serif;
+      color: var(--warm);
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+    nav .logo span { color: var(--accent); }
+    nav ul { list-style: none; display: flex; gap: 2rem; }
+    nav ul a {
+      color: var(--warm);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 400;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      transition: color .2s;
+    }
+    nav ul a:hover { color: var(--accent); }
+
+    /* HERO */
+    .hero {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      min-height: 80vh;
+      padding: 4rem 2rem;
+      background: var(--dark);
+      color: var(--cream);
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 30% 20%, rgba(201,123,75,0.18) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 70%, rgba(107,159,122,0.12) 0%, transparent 50%);
+      pointer-events: none;
+    }
+    .hero-tag {
+      font-size: 0.8rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1.5rem;
+      position: relative;
+    }
+    .hero h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(3rem, 7vw, 6rem);
+      font-weight: 700;
+      line-height: 1.1;
+      margin-bottom: 1.5rem;
+      position: relative;
+    }
+    .hero p {
+      max-width: 540px;
+      font-size: 1.1rem;
+      font-weight: 300;
+      color: #c2b8ad;
+      margin-bottom: 2.5rem;
+      position: relative;
+    }
+    .hero-btn {
+      display: inline-block;
+      padding: 0.9rem 2.4rem;
+      background: var(--accent);
+      color: var(--white);
+      text-decoration: none;
+      font-size: 0.95rem;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      border-radius: 4px;
+      transition: background .25s, transform .15s;
+      position: relative;
+    }
+    .hero-btn:hover { background: #b36a38; transform: translateY(-2px); }
+
+    /* FEATURED BOOKS */
+    .section { padding: 5rem 2rem; }
+    .section-label {
+      text-align: center;
+      font-size: 0.75rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.75rem;
+    }
+    .section-title {
+      font-family: 'Playfair Display', serif;
+      text-align: center;
+      font-size: clamp(2rem, 4vw, 3rem);
+      color: var(--dark);
+      margin-bottom: 1rem;
+    }
+    .section-subtitle {
+      text-align: center;
+      max-width: 500px;
+      margin: 0 auto 3.5rem;
+      color: #8a7f76;
+      font-weight: 300;
+    }
+
+    .book-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 2rem;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    .book-card {
+      background: var(--white);
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 4px 24px rgba(46,37,32,0.08);
+      transition: transform .25s, box-shadow .25s;
+    }
+    .book-card:hover { transform: translateY(-6px); box-shadow: 0 12px 36px rgba(46,37,32,0.14); }
+
+    .book-cover {
+      height: 320px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    /* Book cover backgrounds */
+    .book-card:nth-child(1) .book-cover { background: linear-gradient(135deg, #4a3728 0%, #7b5e46 100%); }
+    .book-card:nth-child(2) .book-cover { background: linear-gradient(135deg, #2f4f4f 0%, #5a8f7a 100%); }
+    .book-card:nth-child(3) .book-cover { background: linear-gradient(135deg, #5c3d6e 0%, #956aad 100%); }
+
+    .book-spine {
+      width: 70px;
+      height: 240px;
+      background: rgba(255,255,255,0.12);
+      border-radius: 4px 8px 8px 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: -3px 0 12px rgba(0,0,0,0.25) inset, 0 4px 16px rgba(0,0,0,0.2);
+      position: relative;
+    }
+    .book-spine::after {
+      content: '';
+      position: absolute;
+      inset: 8px 8px 8px 10px;
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 3px 6px 6px 3px;
+    }
+    .book-spine span {
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      color: rgba(255,255,255,0.7);
+      font-family: 'Playfair Display', serif;
+      font-size: 1rem;
+      letter-spacing: 0.1em;
+    }
+
+    .book-info { padding: 1.5rem 1.75rem 1.75rem; }
+    .book-genre {
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--green);
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+    }
+    .book-info h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.35rem;
+      margin-bottom: 0.25rem;
+      color: var(--dark);
+    }
+    .book-author {
+      font-size: 0.85rem;
+      color: #8a7f76;
+      margin-bottom: 0.75rem;
+    }
+    .book-desc {
+      font-size: 0.88rem;
+      color: #6b6159;
+      line-height: 1.6;
+      margin-bottom: 1.25rem;
+    }
+    .book-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .book-price {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.2rem;
+      color: var(--accent);
+      font-weight: 700;
+    }
+    .book-link {
+      font-size: 0.8rem;
+      color: var(--brown);
+      text-decoration: none;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      font-weight: 500;
+      transition: color .2s;
+    }
+    .book-link:hover { color: var(--accent); }
+
+    /* FOOTER */
+    footer {
+      background: var(--dark);
+      color: var(--warm);
+      padding: 3rem 2rem;
+    }
+    .footer-inner {
+      max-width: 960px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 2.5rem;
+    }
+    .footer-col h4 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem;
+      margin-bottom: 0.75rem;
+      color: var(--white);
+    }
+    .footer-col p, .footer-col a {
+      font-size: 0.85rem;
+      color: #9f9288;
+      line-height: 1.8;
+    }
+    .footer-col a { text-decoration: none; display: block; transition: color .2s; }
+    .footer-col a:hover { color: var(--accent); }
+
+    .footer-bottom {
+      max-width: 960px;
+      margin: 2rem auto 0;
+      padding-top: 1.5rem;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      text-align: center;
+      font-size: 0.78rem;
+      color: #6b6159;
+    }
+
+    @media (max-width: 600px) {
+      nav { padding: 1rem 1.25rem; flex-direction: column; gap: 0.75rem; }
+      nav ul { gap: 1.25rem; }
+      .hero { min-height: 65vh; }
+      .section { padding: 3.5rem 1.25rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <div class="logo">paper<span>.</span>trail</div>
+    <ul>
+      <li><a href="#books">Books</a></li>
+      <li><a href="#">About</a></li>
+      <li><a href="#">Visit Us</a></li>
+      <li><a href="#">Contact</a></li>
+    </ul>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <p class="hero-tag">Est. 2019 · Portland, OR</p>
+    <h1>Get Lost In<br>A Good Book</h1>
+    <p>Paper Trail is an independent bookstore curating thoughtful reads — from obscure literary gems to the season's most compelling debuts.</p>
+    <a href="#books" class="hero-btn">Browse Selection</a>
+  </section>
+
+  <!-- FEATURED BOOKS -->
+  <section class="section" id="books">
+    <p class="section-label">This Month's Picks</p>
+    <h2 class="section-title">Featured Titles</h2>
+    <p class="section-subtitle">Hand-picked by our team of avid readers and devoted book hunters.</p>
+
+    <div class="book-grid">
+
+      <!-- Book 1 -->
+      <article class="book-card">
+        <div class="book-cover">
+          <div class="book-spine">
+            <span>The Midnight Library</span>
+          </div>
+        </div>
+        <div class="book-info">
+          <p class="book-genre">Fiction · Literary</p>
+          <h3>The Midnight Library</h3>
+          <p class="book-author">by Matt Haig</p>
+          <p class="book-desc">Between life and death there is a library, and within that library, the shelves go on forever. Every book provides a chance to try another life you could have lived.</p>
+          <div class="book-meta">
+            <span class="book-price">$16.99</span>
+            <a href="#" class="book-link">View Details →</a>
+          </div>
+        </div>
+      </article>
+
+      <!-- Book 2 -->
+      <article class="book-card">
+        <div class="book-cover">
+          <div class="book-spine">
+            <span>Project Hail Mary</span>
+          </div>
+        </div>
+        <div class="book-info">
+          <p class="book-genre">Sci-Fi · Adventure</p>
+          <h3>Project Hail Mary</h3>
+          <p class="book-author">by Andy Weir</p>
+          <p class="book-desc">Ryland Grace is the sole survivor on a desperate, last-chance mission — and if he fails, humanity and the Earth itself are finished. A gripping tale of science and survival.</p>
+          <div class="book-meta">
+            <span class="book-price">$18.50</span>
+            <a href="#" class="book-link">View Details →</a>
+          </div>
+        </div>
+      </article>
+
+      <!-- Book 3 -->
+      <article class="book-card">
+        <div class="book-cover">
+          <div class="book-spine">
+            <span>Crying in H Mart</span>
+          </div>
+        </div>
+        <div class="book-info">
+          <p class="book-genre">Memoir · Non-Fiction</p>
+          <h3>Crying in H Mart</h3>
+          <p class="book-author">by Michelle Zauner</p>
+          <p class="book-desc">A poignant memoir about growing up Korean American, losing her mother, and forging her own identity through food, music, and memory.</p>
+          <div class="book-meta">
+            <span class="book-price">$15.25</span>
+            <a href="#" class="book-link">View Details →</a>
+          </div>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer id="contact">
+    <div class="footer-inner">
+      <div class="footer-col">
+        <h4>Paper Trail</h4>
+        <p>An independent bookstore in the heart of Portland, Oregon. Curating stories that matter since 2019.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Visit Us</h4>
+        <p>421 Hawthorne Blvd<br>Portland, OR 97214</p>
+        <p style="margin-top:.5rem;">Mon–Sat: 9am – 8pm<br>Sun: 10am – 6pm</p>
+      </div>
+      <div class="footer-col">
+        <h4>Quick Links</h4>
+        <a href="#">New Arrivals</a>
+        <a href="#">Staff Picks</a>
+        <a href="#">Events &amp; Readings</a>
+        <a href="#">Gift Cards</a>
+      </div>
+      <div class="footer-col">
+        <h4>Stay in the Loop</h4>
+        <p>Sign up for our newsletter and get first dibs on new releases, author events, and exclusive discounts.</p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      &copy; 2025 Paper Trail Bookstore. All rights reserved. Designed with love for printed words.
+    </div>
+  </footer>
+
+</body>
+</html>

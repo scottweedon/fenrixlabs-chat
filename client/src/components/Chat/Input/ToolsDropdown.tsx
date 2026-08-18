@@ -120,28 +120,18 @@ const ToolsDropdown = ({ disabled }: ToolsDropdownProps) => {
   const handleArtifactsToggle = useCallback(() => {
     const currentState = artifacts?.toggleState;
     if (!currentState || currentState === '') {
-      artifacts?.debouncedChange({ value: ArtifactModes.DEFAULT });
+      artifacts?.debouncedChange({ value: ArtifactModes.WEBPAGE });
     } else {
       artifacts?.debouncedChange({ value: '' });
     }
   }, [artifacts]);
 
-  const handleShadcnToggle = useCallback(() => {
-    const currentState = artifacts?.toggleState;
-    if (currentState === ArtifactModes.SHADCNUI) {
-      artifacts?.debouncedChange({ value: ArtifactModes.DEFAULT });
-    } else {
-      artifacts?.debouncedChange({ value: ArtifactModes.SHADCNUI });
-    }
+  const handleWebpageSelect = useCallback(() => {
+    artifacts?.debouncedChange({ value: ArtifactModes.WEBPAGE });
   }, [artifacts]);
 
-  const handleCustomToggle = useCallback(() => {
-    const currentState = artifacts?.toggleState;
-    if (currentState === ArtifactModes.CUSTOM) {
-      artifacts?.debouncedChange({ value: ArtifactModes.DEFAULT });
-    } else {
-      artifacts?.debouncedChange({ value: ArtifactModes.CUSTOM });
-    }
+  const handleDocumentSelect = useCallback(() => {
+    artifacts?.debouncedChange({ value: ArtifactModes.DOCUMENT });
   }, [artifacts]);
 
   const handleSkillsToggle = useCallback(() => {
@@ -352,8 +342,8 @@ const ToolsDropdown = ({ disabled }: ToolsDropdownProps) => {
           setIsArtifactsPinned={setIsArtifactsPinned}
           artifactsMode={artifacts?.toggleState as string}
           handleArtifactsToggle={handleArtifactsToggle}
-          handleShadcnToggle={handleShadcnToggle}
-          handleCustomToggle={handleCustomToggle}
+          handleWebpageSelect={handleWebpageSelect}
+          handleDocumentSelect={handleDocumentSelect}
         />
       ),
     });

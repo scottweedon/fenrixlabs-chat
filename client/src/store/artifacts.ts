@@ -114,6 +114,17 @@ export const previewJustResolved = atomFamily<boolean, string>({
   default: false,
 });
 
+/**
+ * Per-conversation "always show the artifacts panel" preference, toggled
+ * from the prompt bar's Artifacts button. When `true`, `Presentation.tsx`
+ * keeps the side panel mounted even before any artifact has arrived, and
+ * `Artifacts.tsx` renders an empty placeholder in place of `ArtifactTabs`.
+ */
+export const artifactsPanelPinned = atomFamily<boolean, string>({
+  key: 'artifactsPanelPinned',
+  default: false,
+});
+
 export const visibleArtifacts = atom<Record<string, Artifact | undefined> | null>({
   key: 'visibleArtifacts',
   default: null,

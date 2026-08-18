@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import { useRecoilValue } from 'recoil';
-import { FileSources, LocalStorageKeys } from 'librechat-data-provider';
+import { Constants, FileSources, LocalStorageKeys } from 'librechat-data-provider';
 import type { ExtendedFile } from '~/common';
 import useResetArtifactsOnConversationChange from '~/hooks/Artifacts/useResetArtifactsOnConversationChange';
 import DragDropWrapper from '~/components/Chat/Input/Files/DragDropWrapper';
@@ -22,6 +22,10 @@ export default function Presentation({ children }: { children: React.ReactNode }
   // arriving via SSE auto-focus through `ToolArtifactCard`'s mount effect
   // (gated on `isSubmitting`), restoring the legacy streaming UX.
   const currentArtifactId = useRecoilValue(store.currentArtifactId);
+  const conversationId = useRecoilValue(store.conversationIdByIndex(0));
+  const isPanelPinned = useRecoilValue(
+    store.artifactsPanelPinned(conversationId ?? Constants.NEW_CONVO),
+  );
 
   useResetArtifactsOnConversationChange();
 
@@ -59,11 +63,9 @@ export default function Presentation({ children }: { children: React.ReactNode }
   }, [mutateAsync]);
 
   const artifactsElement = useMemo(() => {
-    if (
-      artifactsVisibility === true &&
-      currentArtifactId != null &&
-      Object.keys(artifacts ?? {}).length > 0
-    ) {
+    const hasFocusedArtifact =
+      currentArtifactId != null && Object.keys(artifacts ?? {}).length > 0;
+    if (artifactsVisibility === true && (hasFocusedArtifact || isPanelPinned)) {
       return (
         <ArtifactsProvider>
           <EditorProvider>
@@ -73,7 +75,7 @@ export default function Presentation({ children }: { children: React.ReactNode }
       );
     }
     return null;
-  }, [artifactsVisibility, artifacts, currentArtifactId]);
+  }, [artifactsVisibility, artifacts, currentArtifactId, isPanelPinned]);
 
   return (
     <DragDropWrapper className="relative flex w-full grow overflow-hidden bg-presentation">

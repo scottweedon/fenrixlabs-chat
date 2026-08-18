@@ -27,6 +27,7 @@ export * from './yaml';
 export * from './http';
 export * from './tokens';
 export * from './tokenMap';
+export * from './truncation';
 export * from './url';
 export * from './message';
 export * from './quotes';

@@ -1,11 +1,13 @@
 import React, { memo, useState, useCallback, useMemo, useEffect } from 'react';
 import * as Ariakit from '@ariakit/react';
+import { useSetRecoilState } from 'recoil';
 import { CheckboxButton } from '@librechat/client';
 import { WandSparkles, ChevronDown } from 'lucide-react';
-import { ArtifactModes, defaultAgentCapabilities } from 'librechat-data-provider';
+import { Constants, ArtifactModes, defaultAgentCapabilities } from 'librechat-data-provider';
 import { useLocalize, useAgentCapabilities } from '~/hooks';
 import { useBadgeRowContext } from '~/Providers';
 import { cn } from '~/utils';
+import store from '~/store';
 
 interface ArtifactsToggleState {
   enabled: boolean;
@@ -32,8 +34,20 @@ function Artifacts() {
   }, [toggleState]);
 
   const isEnabled = currentState.enabled;
-  const isShadcnEnabled = currentState.mode === ArtifactModes.SHADCNUI;
-  const isCustomEnabled = currentState.mode === ArtifactModes.CUSTOM;
+  const isWebpageEnabled = currentState.mode === ArtifactModes.WEBPAGE;
+  const isDocumentEnabled = currentState.mode === ArtifactModes.DOCUMENT;
+
+  const conversationKey = context?.conversationId ?? Constants.NEW_CONVO;
+  const setPanelPinned = useSetRecoilState(store.artifactsPanelPinned(conversationKey));
+
+  /**
+   * Keep the "always show the artifacts panel" pin in sync with the
+   * enabled state, regardless of whether it changed via this button's
+   * click handler or was hydrated from the conversation's saved config.
+   */
+  useEffect(() => {
+    setPanelPinned(isEnabled);
+  }, [isEnabled, setPanelPinned]);
 
   const handleToggle = useCallback(() => {
     if (!debouncedChange) return;
@@ -41,7 +55,7 @@ function Artifacts() {
       debouncedChange({ value: '' });
       setIsButtonExpanded(false);
     } else {
-      debouncedChange({ value: ArtifactModes.DEFAULT });
+      debouncedChange({ value: ArtifactModes.WEBPAGE });
     }
   }, [isEnabled, debouncedChange]);
 
@@ -59,23 +73,13 @@ function Artifacts() {
     }
   }, [isPopoverOpen]);
 
-  const handleShadcnToggle = useCallback(() => {
-    if (!debouncedChange) return;
-    if (isShadcnEnabled) {
-      debouncedChange({ value: ArtifactModes.DEFAULT });
-    } else {
-      debouncedChange({ value: ArtifactModes.SHADCNUI });
-    }
-  }, [isShadcnEnabled, debouncedChange]);
+  const handleWebpageSelect = useCallback(() => {
+    debouncedChange?.({ value: ArtifactModes.WEBPAGE });
+  }, [debouncedChange]);
 
-  const handleCustomToggle = useCallback(() => {
-    if (!debouncedChange) return;
-    if (isCustomEnabled) {
-      debouncedChange({ value: ArtifactModes.DEFAULT });
-    } else {
-      debouncedChange({ value: ArtifactModes.CUSTOM });
-    }
-  }, [isCustomEnabled, debouncedChange]);
+  const handleDocumentSelect = useCallback(() => {
+    debouncedChange?.({ value: ArtifactModes.DOCUMENT });
+  }, [debouncedChange]);
 
   if (!artifactsEnabled) {
     return null;
@@ -129,45 +133,45 @@ function Artifacts() {
                 {localize('com_ui_artifacts_options')}
               </div>
 
-              {/* Include shadcn/ui Option */}
+              {/* Webpage Option */}
               <Ariakit.MenuItem
                 hideOnClick={false}
                 onClick={(event) => {
                   event.preventDefault();
                   event.stopPropagation();
-                  handleShadcnToggle();
+                  handleWebpageSelect();
                 }}
                 className={cn(
                   'mb-1 flex items-center justify-between gap-2 rounded-lg px-2 py-2',
                   'cursor-pointer bg-surface-secondary text-text-primary outline-none transition-colors',
                   'hover:bg-surface-hover data-[active-item]:bg-surface-hover',
-                  isShadcnEnabled && 'bg-surface-active',
+                  isWebpageEnabled && 'bg-surface-active',
                 )}
               >
-                <span className="text-sm">{localize('com_ui_include_shadcnui' as any)}</span>
+                <span className="text-sm">{localize('com_ui_artifacts_mode_webpage' as any)}</span>
                 <div className="ml-auto flex items-center">
-                  <Ariakit.MenuItemCheck checked={isShadcnEnabled} />
+                  <Ariakit.MenuItemCheck checked={isWebpageEnabled} />
                 </div>
               </Ariakit.MenuItem>
 
-              {/* Custom Prompt Mode Option */}
+              {/* Document Option */}
               <Ariakit.MenuItem
                 hideOnClick={false}
                 onClick={(event) => {
                   event.preventDefault();
                   event.stopPropagation();
-                  handleCustomToggle();
+                  handleDocumentSelect();
                 }}
                 className={cn(
                   'mb-1 flex items-center justify-between gap-2 rounded-lg px-2 py-2',
                   'cursor-pointer bg-surface-secondary text-text-primary outline-none transition-colors',
                   'hover:bg-surface-hover data-[active-item]:bg-surface-hover',
-                  isCustomEnabled && 'bg-surface-active',
+                  isDocumentEnabled && 'bg-surface-active',
                 )}
               >
-                <span className="text-sm">{localize('com_ui_custom_prompt_mode' as any)}</span>
+                <span className="text-sm">{localize('com_ui_artifacts_mode_document' as any)}</span>
                 <div className="ml-auto flex items-center">
-                  <Ariakit.MenuItemCheck checked={isCustomEnabled} />
+                  <Ariakit.MenuItemCheck checked={isDocumentEnabled} />
                 </div>
               </Ariakit.MenuItem>
             </div>

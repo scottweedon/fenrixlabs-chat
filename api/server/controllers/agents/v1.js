@@ -611,6 +611,7 @@ const getAgentHandler = async (req, res, expandProperties = false) => {
         provider: agent.provider,
         model: agent.model,
         model_parameters: getSafeModelParameters(agent.model_parameters),
+        artifacts: agent.artifacts,
         isPublic: agent.isPublic,
         version: agent.version,
         // Safe metadata

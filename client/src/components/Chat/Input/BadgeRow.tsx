@@ -31,6 +31,7 @@ interface BadgeRowProps {
   onToggle?: (badgeId: string, currentActive: boolean) => void;
   conversationId?: string | null;
   specName?: string | null;
+  agentId?: string | null;
   isSubmitting?: boolean;
   isInChat: boolean;
 }
@@ -146,6 +147,7 @@ function BadgeRow({
   showEphemeralBadges,
   conversationId,
   specName,
+  agentId,
   isSubmitting,
   onChange,
   onToggle,
@@ -327,6 +329,7 @@ function BadgeRow({
     <BadgeRowProvider
       conversationId={conversationId}
       specName={specName}
+      agentId={agentId}
       isSubmitting={isSubmitting}
     >
       <div ref={containerRef} className="relative flex flex-wrap items-center gap-2">

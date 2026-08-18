@@ -11,8 +11,8 @@ interface ArtifactsSubMenuProps extends React.HTMLAttributes<HTMLButtonElement> 
   setIsArtifactsPinned: (value: boolean) => void;
   artifactsMode: string;
   handleArtifactsToggle: () => void;
-  handleShadcnToggle: () => void;
-  handleCustomToggle: () => void;
+  handleWebpageSelect: () => void;
+  handleDocumentSelect: () => void;
 }
 
 const ArtifactsSubMenu = React.forwardRef<HTMLButtonElement, ArtifactsSubMenuProps>(
@@ -22,8 +22,8 @@ const ArtifactsSubMenu = React.forwardRef<HTMLButtonElement, ArtifactsSubMenuPro
       setIsArtifactsPinned,
       artifactsMode,
       handleArtifactsToggle,
-      handleShadcnToggle,
-      handleCustomToggle,
+      handleWebpageSelect,
+      handleDocumentSelect,
       className,
       ...props
     },
@@ -38,8 +38,8 @@ const ArtifactsSubMenu = React.forwardRef<HTMLButtonElement, ArtifactsSubMenuPro
     });
 
     const isEnabled = artifactsMode !== '' && artifactsMode !== undefined;
-    const isShadcnEnabled = artifactsMode === ArtifactModes.SHADCNUI;
-    const isCustomEnabled = artifactsMode === ArtifactModes.CUSTOM;
+    const isWebpageEnabled = artifactsMode === ArtifactModes.WEBPAGE;
+    const isDocumentEnabled = artifactsMode === ArtifactModes.DOCUMENT;
 
     return (
       <>
@@ -99,45 +99,45 @@ const ArtifactsSubMenu = React.forwardRef<HTMLButtonElement, ArtifactsSubMenuPro
                   {localize('com_ui_artifacts_options')}
                 </div>
 
-                {/* Include shadcn/ui Option */}
+                {/* Webpage Option */}
                 <Ariakit.MenuItem
                   hideOnClick={false}
                   onClick={(event) => {
                     event.preventDefault();
                     event.stopPropagation();
-                    handleShadcnToggle();
+                    handleWebpageSelect();
                   }}
                   className={cn(
                     'mb-1 flex items-center justify-between gap-2 rounded-lg px-2 py-2',
                     'cursor-pointer bg-surface-secondary text-text-primary outline-none transition-colors',
                     'hover:bg-surface-hover data-[active-item]:bg-surface-hover',
-                    isShadcnEnabled && 'bg-surface-active',
+                    isWebpageEnabled && 'bg-surface-active',
                   )}
                 >
-                  <span className="text-sm">{localize('com_ui_include_shadcnui' as any)}</span>
+                  <span className="text-sm">{localize('com_ui_artifacts_mode_webpage' as any)}</span>
                   <div className="ml-auto flex items-center">
-                    <Ariakit.MenuItemCheck checked={isShadcnEnabled} />
+                    <Ariakit.MenuItemCheck checked={isWebpageEnabled} />
                   </div>
                 </Ariakit.MenuItem>
 
-                {/* Custom Prompt Mode Option */}
+                {/* Document Option */}
                 <Ariakit.MenuItem
                   hideOnClick={false}
                   onClick={(event) => {
                     event.preventDefault();
                     event.stopPropagation();
-                    handleCustomToggle();
+                    handleDocumentSelect();
                   }}
                   className={cn(
                     'mb-1 flex items-center justify-between gap-2 rounded-lg px-2 py-2',
                     'cursor-pointer bg-surface-secondary text-text-primary outline-none transition-colors',
                     'hover:bg-surface-hover data-[active-item]:bg-surface-hover',
-                    isCustomEnabled && 'bg-surface-active',
+                    isDocumentEnabled && 'bg-surface-active',
                   )}
                 >
-                  <span className="text-sm">{localize('com_ui_custom_prompt_mode' as any)}</span>
+                  <span className="text-sm">{localize('com_ui_artifacts_mode_document' as any)}</span>
                   <div className="ml-auto flex items-center">
-                    <Ariakit.MenuItemCheck checked={isCustomEnabled} />
+                    <Ariakit.MenuItemCheck checked={isDocumentEnabled} />
                   </div>
                 </Ariakit.MenuItem>
               </div>

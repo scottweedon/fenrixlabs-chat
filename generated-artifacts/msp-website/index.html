@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NexusTech Solutions | Managed IT Services</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="#home" class="nav-logo">
+                <i data-lucide="shield-check"></i>
+                <span>NexusTech</span>
+            </a>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="#home" class="active">Home</a></li>
+                <li><a href="#services">Services</a></li>
+                <li><a href="#about">About</a></li>
+                <li><a href="#testimonials">Testimonials</a></li>
+                <li><a href="#pricing">Pricing</a></li>
+                <li><a href="#faq">FAQ</a></li>
+                <li><a href="#contact" class="nav-cta">Contact Us</a></li>
+            </ul>
+            <button class="mobile-toggle" id="mobileToggle" aria-label="Toggle Menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <div class="hero-bg"></div>
+        <div class="container hero-content">
+            <div class="hero-text fade-in">
+                <div class="badge">⚡ Trusted by 500+ Businesses Nationwide</div>
+                <h1>Your IT Department, <span class="gradient-text">Upgraded.</span></h1>
+                <p>We provide proactive managed IT services that keep your business running smoothly — so you can focus on growing it. From cybersecurity to cloud solutions, we've got you covered.</p>
+                <div class="hero-buttons">
+                    <a href="#contact" class="btn btn-primary">Get a Free IT Assessment →</a>
+                    <a href="#services" class="btn btn-secondary">Explore Services</a>
+                </div>
+                <div class="hero-stats">
+                    <div class="stat">
+                        <span class="stat-number" data-target="99.9">0</span><span class="stat-suffix">%</span>
+                        <span class="stat-label">Uptime SLA</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number" data-target="500">0</span><span class="stat-suffix">+</span>
+                        <span class="stat-label">Clients Served</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number" data-target="15">&lt;</span>
+                        <span class="stat-label">Min Response</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number" data-target="24">0</span><span class="stat-suffix">/7</span>
+                        <span class="stat-label">Support</span>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-visual fade-in delay-1">
+                <div class="dashboard-preview">
+                    <div class="dash-header">
+                        <div class="dash-dots">
+                            <span></span><span></span><span></span>
+                        </div>
+                        <span>System Monitor</span>
+                    </div>
+                    <div class="dash-content">
+                        <div class="dash-metric">
+                            <div class="metric-ring" style="--fill: 92">
+                                <svg viewBox="0 0 100 100">
+                                    <circle cx="50" cy="50" r="42"/>
+                                    <circle cx="50" cy="50" r="42" class="ring-fill"/>
+                                </svg>
+                                <span>92%</span>
+                            </div>
+                            <span>Health Score</span>
+                        </div>
+                        <div class="dash-metric">
+                            <div class="metric-ring green" style="--fill: 100">
+                                <svg viewBox="0 0 100 100">
+                                    <circle cx="50" cy="50" r="42"/>
+                                    <circle cx="50" cy="50" r="42" class="ring-fill"/>
+                                </svg>
+                                <span>&check;</span>
+                            </div>
+                            <span>All Secure</span>
+                        </div>
+                        <div class="dash-metric">
+                            <div class="metric-ring blue" style="--fill: 78">
+                                <svg viewBox="0 0 100 100">
+                                    <circle cx="50" cy="50" r="42"/>
+                                    <circle cx="50" cy="50" r="42" class="ring-fill"/>
+                                </svg>
+                                <span>1.2k</span>
+                            </div>
+                            <span>Tickets Closed</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Trusted By / Logos -->
+    <section class="logos-section">
+        <div class="container">
+            <p class="logos-label">Trusted by innovative companies</p>
+            <div class="logo-grid">
+                <div class="logo-item">Acme Corp</div>
+                <div class="logo-item">TechFlow</div>
+                <div class="logo-item">DataSync</div>
+                <div class="logo-item">CloudBase</div>
+                <div class="logo-item">Innovate Inc</div>
+                <div class="logo-item">ScaleUp</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section class="services" id="services">
+        <div class="container">
+            <div class="section-header fade-in">
+                <span class="section-label">What We Do</span>
+                <h2>Comprehensive IT Solutions, Tailored to You</h2>
+                <p>From day-to-day support to enterprise-level infrastructure management, we deliver the full spectrum of IT services your business needs.</p>
+            </div>
+            <div class="services-grid">
+                <div class="service-card fade-in">
+                    <div class="service-icon ic-blue">
+                        <i data-lucide="headphones"></i>
+                    </div>
+                    <h3>Managed IT Support</h3>
+                    <p>24/7 helpdesk support with guaranteed response times. Monitor, maintain & fix issues before they impact your team.</p>
+                    <ul class="service-features">
+                        <li><i data-lucide="check" size="14"></i>Unlimited Helpdesk</li>
+                        <li><i data-lucide="check" size="14"></i>No-Tier Support Model</li>
+                        <li><i data-lucide="check" size="14"></i>Remote & On-site Options</li>
+                    </ul>
+                </div>
+                <div class="service-card fade-in">
+                    <div class="service-icon ic-purple">
+                        <i data-lucide="shield"></i>
+                    </div>
+                    <h3>Cybersecurity</h3>
+                    <p>Multi-layered defense to protect your data, systems and network from ever-evolving threats and ransomware.</p>
+                    <ul class="service-features">
+                        <li><i data-lucide="check" size="14"></i>Threat Detection & Response</li>
+                        <li><i data-lucide="check" size="14"></i>Endpoint Protection (EDR)</li>
+                        <li><i data-lucide="check" size="14"></i>Email Security & Filter</li>
+                    </ul>
+                </div>
+                <div class="service-card fade-in">
+                    <div class="service-icon ic-green">
+                        <i data-lucide="cloud"></i>
+                    </div>
+                    <h3>Cloud Solutions</h3>
+                    <p>Seamless migration & management of cloud infrastructure. We architect and manage your hybrid or public cloud.</p>
+                    <ul class="service-features">
+                        <li><i data-lucide="check" size="14"></i>Azure / AWS / GCP</li>
+                        <li><i data-lucide="check" size="14"></i>M365 Management</li>
+                        <li><i data-lucide="check" size="14"></i>Disaster Recovery</li>
+                    </ul>
+                </div>
+                <div class="service-card fade-in">
+                    <div class="service-icon ic-orange">
+                        <i data-lucide="server"></i>
+                    </div>
+                    <h3>Network Management</h3>
+                    <p>Design, deploy & manage robust networks that keep your team connected and performing at peak efficiency.</p>
+                    <ul class="service-features">
+                        <li><i data-lucide="check" size="14"></i>SD-WC & Firewalls</li>
+                        <li><i data-lucide="check" size="14"></i>Wi-Fi Design</li>
+                        <li><i data-lucide="check" size="14"></i>Network Monitoring</li>
+                    </ul>
+                </div>
+                <div class="service-card fade-in">
+                    <div class="service-icon ic-red">
+                        <i data-lucide="file-lock"></i>
+                    </div>
+                    <h3>Backup & DR</h3>
+                    <p>Enterprise-grade backup and disaster recovery planning to ensure business continuity no matter what happens.</p>
+                    <ul class="service-features">
+                        <li><i data-lucide="check" size="14"></i>Continuous Backup</li>
+                        <li><i data-lucide="check" size="14"></i>RPO/RTO Planning</li>
+                        <li><i data-lucide="check" size="14"></i>Regular Testing</li>
+                    </ul>
+                </div>
+                <div class="service-card fade-in">
+                    <div class="service-icon ic-cyan">
+                        <i data-lucide="clipboard-list"></i>
+                    </div>
+                    <h3>IT Consulting & Strategy</h3>
+                    <p>Strategic technology roadmapping, budget planning and governance to align IT with your business goals.</p>
+                    <ul class="service-features">
+                        <li><i data-lucide="check" size="14"></i>vCIO Services</li>
+                        <li><i data-lucide="check" size="14"></i>SOC 2 Compliance</li>
+                        <li><i data-lucide="check" size="14"></i>Tech Stack Audits</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section class="about" id="about">
+        <div class="container about-grid">
+            <div class="about-visual fade-in">
+                <div class="about-card about-card-primary">
+                    <i data-lucide="users"></i>
+                    <h4>People First</h4>
+                    <p>We treat every client like a partner. That means clear communication, honest advice and solutions that fit your real needs — not what's most profitable to upsell.</p>
+                </div>
+                <div class="about-card about-card-secondary">
+                    <i data-lucide="award"></i>
+                    <h4>Certified Experts</h4>
+                    <p>Our team holds 80+ certifications across Microsoft, Cisco, CompTIA and cyber security frameworks.</p>
+                </div>
+                <div class="about-card about-card-tertiary">
+                    <i data-lucide="clock"></i>
+                    <h4>A Decade of Excellence</h4>
+                    <p>Serving small & mid-market businesses since 2014 with a team of 75+ dedicated IT professionals.</p>
+                </div>
+            </div>
+            <div class="about-text fade-in">
+                <span class="section-label">Why NexusTech?</span>
+                <h2>We're Not Just Your MSP — We're a Growth Partner</h2>
+                <p>Unlike break/fix providers, we proactively manage and secure your entire IT environment. Our platform-based approach means consistent quality no matter who picks up your ticket.</p>
+                <div class="about-list">
+                    <div class="about-item">
+                        <div class="about-icon-box"><i data-lucide="trending-up"></i></div>
+                        <div><h4>Platform-Based Delivery</h4><p>Consistent quality regardless of ticket handler</p></div>
+                    </div>
+                    <div class="about-item">
+                        <div class="about-icon-box"><i data-lucide="dollar-sign"></i></div>
+                        <div><h4>Predictable Costing</h4><p>Fat-ire per-seat pricing — no surprise bills ever</p></div>
+                    </div>
+                    <div class="about-item">
+                        <div class="about-icon-box"><i data-lucide="zap"></i></div>
+                        <div><h4>Automation-First Mindset</h4><p>Reducing manual work for faster, more reliable service</p></div>
+                    </div>
+                    <div class="about-item">
+                        <div class="about-icon-box"><i data-lucide="heart-handshake"></i></div>
+                        <div><h4>Long-Term Relationships</h4><p>96% client retention rate across our service history</p></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials -->
+    <section class="testimonials" id="testimonials">
+        <div class="container">
+            <div class="section-header fade-in">
+                <span class="section-label">Client Stories</span>
+                <h2>Loved by Businesses Like Yours</h2>
+            </div>
+            <div class="testimonials-grid">
+                <div class="testimonial-card fade-in">
+                    <div class="testimonial-stars">★★★★★</div>
+                    <p>"NexusTech saved us from a crippling ransomware attack. Their SOC team detected and contained it within minutes when our old MSP had zero visibility."</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar sa-blue">JR</div>
+                        <div>
+                            <strong>Jason Rodriguez</strong>
+                            <span>CTO, FinServe Global</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card fade-in">
+                    <div class="testimonial-stars">★★★★★</div>
+                    <p>"Switching to NexusTech was like flipping a switch. Our help desk went from 4-hour wait times to under 5 minutes. The entire team is thrilled."</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar sa-green">SM</div>
+                        <div>
+                            <strong>Sarah Mitchell</strong>
+                            <span>Operations VP, LegalEdge Partners</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card fade-in">
+                    <div class="testimonial-stars">★★★★★</div>
+                    <p>"Their vCIO helped us plan and execute a flawless cloud migration. Zero downtime, and our IT costs dropped 30%. Couldn't be happier."</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar sa-purple">DK</div>
+                        <div>
+                            <strong>David Kim</strong>
+                            <span>CEO, BuildRight Construction</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing -->
+    <section class="pricing" id="pricing">
+        <div class="container">
+            <div class="section-header fade-in">
+                <span class="section-label">Plans & Pricing</span>
+                <h2>Simple, Transparent Pricing</h2>
+                <p>No surprises. No hidden fees. Just flat-rate pricing per user per month.</p>
+            </div>
+            <div class="pricing-grid">
+                <div class="pricing-card fade-in">
+                    <div class="pricing-header">
+                        <span class="plan-name">Essentials</span>
+                        <div class="plan-price">$79<span>/mo/user</span></div>
+                        <p class="plan-sub">Perfect for small teams that need reliable IT support.</p>
+                    </div>
+                    <ul class="pricing-features">
+                        <li><i data-lucide="check" size="16"></i>Unlimited Helpdesk</li>
+                        <li><i data-lucide="check" size="16"></i>Remote Support (8am–6pm)</li>
+                        <li><i data-lucide="check" size="16"></i>Proactive Monitoring</li>
+                        <li><i data-lucide="check" size="16"></i>Bulk Antivirus & M365 Admin</li>
+                        <li><i data-lucide="check" size="16"></i>Monthly Health Reports</li>
+                    </ul>
+                    <a href="#contact" class="btn btn-outline">Get Started</a>
+                </div>
+                <div class="pricing-card featured fade-in">
+                    <div class="popular-badge">Most Popular</div>
+                    <div class="pricing-header">
+                        <span class="plan-name">Professional</span>
+                        <div class="plan-price">$129<span>/mo/user</span></div>
+                        <p class="plan-sub">Our most-requested package for growing businesses.</p>
+                    </div>
+                    <ul class="pricing-features">
+                        <li><i data-lucide="check" size="16"></i>Everything in Essentials, plus:</li>
+                        <li><i data-lucide="check" size="16"></i>Extended Hours (6am–10pm)</li>
+                        <li><i data-lucide="check" size="16"></i>Advanced Cybersecurity Suite</li>
+                        <li><i data-lucide="check" size="16"></i>Backup & Disaster Recovery</li>
+                        <li><i data-lucide="check" size="16"></i>Network Management & Monitoring</li>
+                        <li><i data-lucide="check" size="16"></i>vCIO Quarterly Review</li>
+                    </ul>
+                    <a href="#contact" class="btn btn-primary">Get Started →</a>
+                </div>
+                <div class="pricing-card fade-in">
+                    <div class="pricing-header">
+                        <span class="plan-name">Enterprise</span>
+                        <div class="plan-price">$189<span>/mo/user</span></div>
+                        <p class="plan-sub">Full-service IT department for complex environments.</p>
+                    </div>
+                    <ul class="pricing-features">
+                        <li><i data-lucide="check" size="16"></i>Everything in Professional, plus:</li>
+                        <li><i data-lucide="check" size="16"></i>24/7/365 Support & SLA</li>
+                        <li><i data-lucide="check" size="16"></i>Dedicated Account Manager</li>
+                        <li><i data-lucide="check" size="16"></i>Custom Compliance Programs</li>
+                        <li><i data-lucide="check" size="16"></i>On-site Support Included</li>
+                        <li><i data-lucide="check" size="16"></i>Air-gapped Backup Option</li>
+                    </ul>
+                    <a href="#contact" class="btn btn-outline">Get Started</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="faq" id="faq">
+        <div class="container faq-layout">
+            <div class="fade-in">
+                <span class="section-label">Common Questions</span>
+                <h2>Frequently Asked Questions</h2>
+                <p class="faq-sub">Can't find what you're looking for? <a href="#contact" class="link-blue">Get in touch with our team.</a></p>
+            </div>
+            <div class="faq-list fade-in">
+                <div class="faq-item">
+                    <button class="faq-question">What happens during onboarding?<i data-lucide="chevron-down"></i></button>
+                    <div class="faq-answer"><p>We start with a comprehensive IT assessment — inventorying all devices, software, networks & access. Then we build an implementation timeline and get to work migrating your environment under our management. Most transitions are completed within 2-4 weeks with zero downtime.</p></div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question">Do you support hybrid/remote users?<i data-lucide="chevron-down"></i></button>
+                    <div class="faq-answer"><p>Absolutely. The majority of our clients have distributed teams and we are fully equipped to provide remote support to any user, anywhere in the world. All plans include unlimited remote access.</p></div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question">Is there a minimum contract term?<i data-lucide="chevron-down"></i></button>
+                    <div class="faq-answer"><p>We offer both month-to-month and annual contracts. While we strongly recommend at least 12 months to see the full value, we never lock our clients in with unreasonable penalties.</p></div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question">What happens if you go out of business?<i data-lucide="chevron-down"></i></button>
+                    <div class="faq-answer"><p>All admin credentials, licenses and documentation always remain your property. We provide full export capability at any time and can assist with an orderly transition if that ever becomes necessary.</p></div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question">Do you offer on-site support in our area?<i data-lucide="chevron-down"></i></button>
+                    <div class="faq-answer"><p>We serve clients nationwide through a hybrid model. When an issue requires physical presence, we deploy certified engineers to your site or connect with local partner technicians if needed.</p></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Banner -->
+    <section class="cta-section">
+        <div class="container cta-content fade-in">
+            <h2>Ready to Eliminate IT Headaches?</h2>
+            <p>Schedule a free 30-minute consultation with our team. We'll review your current setup and show you exactly how we can improve it.</p>
+            <div class="cta-buttons">
+                <a href="#contact" class="btn btn-primary">Schedule Free Consultation →</a>
+                <a href="tel:+18005551234" class="btn btn-white"><i data-lucide="phone"></i>(800) 555-1234</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="contact" id="contact">
+        <div class="container contact-grid">
+            <div class="contact-info fade-in">
+                <span class="section-label">Get in Touch</span>
+                <h2>Let's Talk About Your IT Needs</h2>
+                <p>Fill out the form and a member of our team will reach out within 4 business hours with a custom proposal.</p>
+                <div class="contact-details">
+                    <div class="contact-item">
+                        <i data-lucide="phone"></i>
+                        <div><span>(800) 555-1234</span></div>
+                    </div>
+                    <div class="contact-item">
+                        <i data-lucide="mail"></i>
+                        <div><span>hello@nexustech.com</span></div>
+                    </div>
+                    <div class="contact-item">
+                        <i data-lucide="map-pin"></i>
+                        <div><span>123 Innovation Drive, Austin TX 78701</span></div>
+                    </div>
+                    <div class="contact-item">
+                        <i data-lucide="clock"></i>
+                        <div><span>Mon–Fri: 8am–7pm CST</span></div>
+                    </div>
+                </div>
+            </div>
+            <form class="contact-form fade-in" id="contactForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="firstName">First Name *</label>
+                        <input type="text" id="firstName" name="firstName" required placeholder="John">
+                    </div>
+                    <div class="form-group">
+                        <label for="lastName">Last Name *</label>
+                        <input type="text" id="lastName" name="lastName" required placeholder="Doe">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="email">Business Email *</label>
+                        <input type="email" id="email" name="email" required placeholder="john@company.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Phone</label>
+                        <input type="tel" id="phone" name="phone" placeholder="(555) 123-4567">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group full">
+                        <label for="company">Company Name *</label>
+                        <input type="text" id="company" name="company" required placeholder="Your Company, Inc.">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group full">
+                        <label for="employees">Number of Employees</label>
+                        <select id="employees" name="employees">
+                            <option value="">Select range...</option>
+                            <option>1–10 users</option>
+                            <option>11–50 users</option>
+                            <option>51–200 users</option>
+                            <option>201–500 users</option>
+                            <option>500+ users</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group full">
+                        <label for="message">Tell us about your needs *</label>
+                        <textarea id="message" name="message" rows="4" required placeholder="Brief description of your current IT setup and what challenges you'd like help with..."></textarea>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;">Submit Request →</button>
+                <p class="form-note">We respect your privacy. No spam, ever.</p>
+            </form>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container footer-grid">
+            <div class="footer-brand">
+                <a href="#" class="nav-logo"><i data-lucide="shield-check"></i><span>NexusTech</span></a>
+                <p class="footer-desc">Providing proactive managed IT services and cybersecurity solutions to businesses across the nation. Your technology partner since 2014.</p>
+                <div class="social-links">
+                    <a href="#" aria-label="LinkedIn"><i data-lucide="linkedin"></i></a>
+                    <a href="#" aria-label="Twitter"><i data-lucide="twitter"></i></a>
+                    <a href="#" aria-label="Facebook"><i data-lucide="facebook"></i></a>
+                    <a href="#" aria-label="YouTube"><i data-lucide="youtube"></i></a>
+                </div>
+            </div>
+            <div class="footer-links">
+                <h4>Services</h4>
+                <ul><li><a href="#">Managed IT Support</a></li><li><a href="#">Cybersecurity</a></li><li><a href="#">Cloud Solutions</a></li><li><a href="#">Network Management</a></li><li><a href="#">Backup & Disaster Recovery</a></li></ul>
+            </div>
+            <div class="footer-links">
+                <h4>Company</h4>
+                <ul><li><a href="#">About Us</a></li><li><a href="#">Careers</a></li><li><a href="#">Blog</a></li><li><a href="#">Case Studies</a></li><li><a href="#">Contact</a></li></ul>
+            </div>
+            <div class="footer-links">
+                <h4>Resources</h4>
+                <ul><li><a href="#">Help Center</a></li><li><a href="#">Knowledge Base</a></li><li><a href="#">System Status</a></li><li><a href="#">Partner Program</a></li></ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div class="container footer-bottom-content">
+                <p>&copy; 2024 NexusTech Solutions. All rights reserved.</p>
+                <div class="footer-legal"><a href="#">Privacy Policy</a><a href="#">Terms of Service</a><a href="#">SLA</a></div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scroll to Top Button -->
+    <button class="scroll-top" id="scrollTop" aria-label="Scroll to top">
+        <i data-lucide="chevron-up"></i>
+    </button>
+
+    <script src="script.js"></script>
+</body>
+</html>
