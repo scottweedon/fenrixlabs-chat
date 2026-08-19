@@ -547,14 +547,11 @@ const ContentParts = memo(function ContentParts({
           let runSteps: { containsLastIdx: boolean; nodes: ReactElement[] }[] = [];
           /** Every settled run (superseded by later text, or — once the
            *  message is fully done — every run including the last) folds
-           *  into this ONE running collection instead of leaving its own
-           *  separate pill behind. Recomputed fresh each render from the
-           *  current content, so it naturally "moves" to sit right before
-           *  whichever text most recently followed tool activity as the
-           *  message streams in, and becomes the single final summary for
-           *  the whole turn once it's done. */
-          let mergedSteps: { nodes: ReactElement[] }[] = [];
-          let mergedSummaryOutputIdx: number | null = null;
+           *  silently into this ONE running collection instead of rendering
+           *  inline where it chronologically occurred. It's emitted exactly
+           *  once, after the loop, as the very last element — always at the
+           *  bottom of the message, never interspersed with response text. */
+          const mergedSteps: { nodes: ReactElement[] }[] = [];
 
           const flushRun = () => {
             if (runSteps.length === 0) {
@@ -580,22 +577,9 @@ const ContentParts = memo(function ContentParts({
 
             // Settled — either the whole message is done, or this run has
             // already been superseded by later content. Fold it into the
-            // one running summary and re-render that summary at the current
-            // (latest) position, removing its previous rendering.
+            // one running collection; nothing renders here.
             mergedSteps.push(...runSteps);
             runSteps = [];
-            if (mergedSummaryOutputIdx != null) {
-              output.splice(mergedSummaryOutputIdx, 1);
-            }
-            mergedSummaryOutputIdx = output.length;
-            output.push(
-              // Stable key (not keyed on the growing count) so an
-              // already-expanded summary keeps its expanded state as more
-              // tool activity folds into it while the message keeps streaming.
-              <StepRailSummary key="step-summary" count={mergedSteps.length}>
-                {mergedSteps.flatMap((s) => s.nodes)}
-              </StepRailSummary>,
-            );
           };
 
           for (const { isStep, containsLastIdx, nodes } of renderedGroups) {
@@ -607,6 +591,14 @@ const ContentParts = memo(function ContentParts({
             output.push(...nodes);
           }
           flushRun();
+
+          if (mergedSteps.length > 0) {
+            output.push(
+              <StepRailSummary key="step-summary" count={mergedSteps.length}>
+                {mergedSteps.flatMap((s) => s.nodes)}
+              </StepRailSummary>,
+            );
+          }
 
           return output;
         })()}
