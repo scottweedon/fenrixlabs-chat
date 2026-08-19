@@ -545,38 +545,57 @@ const ContentParts = memo(function ContentParts({
 
           const output: ReactElement[] = [];
           let runSteps: { containsLastIdx: boolean; nodes: ReactElement[] }[] = [];
+          /** Every settled run (superseded by later text, or — once the
+           *  message is fully done — every run including the last) folds
+           *  into this ONE running collection instead of leaving its own
+           *  separate pill behind. Recomputed fresh each render from the
+           *  current content, so it naturally "moves" to sit right before
+           *  whichever text most recently followed tool activity as the
+           *  message streams in, and becomes the single final summary for
+           *  the whole turn once it's done. */
+          let mergedSteps: { nodes: ReactElement[] }[] = [];
+          let mergedSummaryOutputIdx: number | null = null;
+
           const flushRun = () => {
             if (runSteps.length === 0) {
               return;
             }
-            const runKey = `step-rail-${output.length}`;
             const isActiveRun = effectiveIsSubmitting && runSteps.some((s) => s.containsLastIdx);
 
-            if (!effectiveIsSubmitting) {
-              // Message fully settled: collapse the whole run to one line,
-              // full detail still available on click — nothing hidden for good.
-              output.push(
-                <StepRailSummary key={runKey} count={runSteps.length}>
-                  {runSteps.flatMap((s) => s.nodes)}
-                </StepRailSummary>,
-              );
-            } else {
-              // Still streaming: the actively growing run shows only its
-              // most recent steps; an earlier, already-settled run within
-              // the same still-streaming message renders in full.
-              const visibleSteps = isActiveRun
-                ? runSteps.slice(-ACTIVE_RUN_VISIBLE_STEPS)
-                : runSteps;
+            if (isActiveRun) {
+              // Still the actively growing run: show its most recent steps
+              // live, in place — not merged into the summary yet.
+              const visibleSteps = runSteps.slice(-ACTIVE_RUN_VISIBLE_STEPS);
               output.push(
                 <div
-                  key={runKey}
+                  key={`step-rail-${output.length}`}
                   className="relative my-3 border-l border-border-light py-1 pl-4"
                 >
                   {visibleSteps.flatMap((s) => s.nodes)}
                 </div>,
               );
+              runSteps = [];
+              return;
             }
+
+            // Settled — either the whole message is done, or this run has
+            // already been superseded by later content. Fold it into the
+            // one running summary and re-render that summary at the current
+            // (latest) position, removing its previous rendering.
+            mergedSteps.push(...runSteps);
             runSteps = [];
+            if (mergedSummaryOutputIdx != null) {
+              output.splice(mergedSummaryOutputIdx, 1);
+            }
+            mergedSummaryOutputIdx = output.length;
+            output.push(
+              // Stable key (not keyed on the growing count) so an
+              // already-expanded summary keeps its expanded state as more
+              // tool activity folds into it while the message keeps streaming.
+              <StepRailSummary key="step-summary" count={mergedSteps.length}>
+                {mergedSteps.flatMap((s) => s.nodes)}
+              </StepRailSummary>,
+            );
           };
 
           for (const { isStep, containsLastIdx, nodes } of renderedGroups) {
