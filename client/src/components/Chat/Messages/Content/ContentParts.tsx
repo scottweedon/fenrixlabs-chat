@@ -17,6 +17,7 @@ import PendingSkillCall from './Parts/PendingSkillCall';
 import ApprovalProvider from './ApprovalContext';
 import MemoryArtifacts from './MemoryArtifacts';
 import ToolCallGroup from './ToolCallGroup';
+import StepRailSummary from './StepRailSummary';
 import Container from './Container';
 import Part from './Part';
 
@@ -492,6 +493,14 @@ const ContentParts = memo(function ContentParts({
             );
           };
 
+          /** How many trailing steps stay visible while a run is still the
+           *  actively streaming one — older steps in that run are dropped
+           *  from render entirely (not collapsed, not toggleable) so a long
+           *  tool-heavy turn doesn't grow the chat window unbounded while
+           *  it's in flight. Nothing is lost from the message's own data;
+           *  this only bounds what's rendered live. */
+          const ACTIVE_RUN_VISIBLE_STEPS = 3;
+
           const renderedGroups = groupedParts.map((group) => {
             const firstIdx =
               group.type === 'single' ? group.part.idx : (group.parts[0]?.idx ?? -1);
@@ -503,9 +512,16 @@ const ContentParts = memo(function ContentParts({
             if (group.type === 'single') {
               const { part, idx } = group.part;
               nodes.push(renderPart(part, idx, idx === lastContentIdx));
-              return { isStep: isStepGroup(group), nodes };
+              return {
+                isStep: isStepGroup(group),
+                containsLastIdx: idx === lastContentIdx,
+                nodes,
+              };
             }
             const { groupId } = group;
+            const containsLastIdx =
+              group.parts.some((p) => p.idx === lastContentIdx) ||
+              group.labelPart?.idx === lastContentIdx;
             nodes.push(
               <ToolCallGroup
                 key={`tool-group-${groupId}`}
@@ -515,10 +531,7 @@ const ContentParts = memo(function ContentParts({
                  *  `parts` — a filled label at the content tail must still
                  *  mark its group as last or nothing holds the streaming
                  *  cursor until the next delta. */
-                isLast={
-                  group.parts.some((p) => p.idx === lastContentIdx) ||
-                  group.labelPart?.idx === lastContentIdx
-                }
+                isLast={containsLastIdx}
                 renderPart={renderGroupedPart}
                 lastContentIdx={lastContentIdx}
                 groupAttachments={group.groupAttachments}
@@ -527,29 +540,48 @@ const ContentParts = memo(function ContentParts({
                 labelPart={group.labelPart}
               />,
             );
-            return { isStep: isStepGroup(group), nodes };
+            return { isStep: isStepGroup(group), containsLastIdx, nodes };
           });
 
           const output: ReactElement[] = [];
-          let runNodes: ReactElement[] = [];
+          let runSteps: { containsLastIdx: boolean; nodes: ReactElement[] }[] = [];
           const flushRun = () => {
-            if (runNodes.length === 0) {
+            if (runSteps.length === 0) {
               return;
             }
-            output.push(
-              <div
-                key={`step-rail-${output.length}`}
-                className="relative my-3 border-l border-border-light py-1 pl-4"
-              >
-                {runNodes}
-              </div>,
-            );
-            runNodes = [];
+            const runKey = `step-rail-${output.length}`;
+            const isActiveRun = effectiveIsSubmitting && runSteps.some((s) => s.containsLastIdx);
+
+            if (!effectiveIsSubmitting) {
+              // Message fully settled: collapse the whole run to one line,
+              // full detail still available on click — nothing hidden for good.
+              output.push(
+                <StepRailSummary key={runKey} count={runSteps.length}>
+                  {runSteps.flatMap((s) => s.nodes)}
+                </StepRailSummary>,
+              );
+            } else {
+              // Still streaming: the actively growing run shows only its
+              // most recent steps; an earlier, already-settled run within
+              // the same still-streaming message renders in full.
+              const visibleSteps = isActiveRun
+                ? runSteps.slice(-ACTIVE_RUN_VISIBLE_STEPS)
+                : runSteps;
+              output.push(
+                <div
+                  key={runKey}
+                  className="relative my-3 border-l border-border-light py-1 pl-4"
+                >
+                  {visibleSteps.flatMap((s) => s.nodes)}
+                </div>,
+              );
+            }
+            runSteps = [];
           };
 
-          for (const { isStep, nodes } of renderedGroups) {
+          for (const { isStep, containsLastIdx, nodes } of renderedGroups) {
             if (isStep) {
-              runNodes.push(...nodes);
+              runSteps.push({ containsLastIdx, nodes });
               continue;
             }
             flushRun();
