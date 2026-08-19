@@ -22,6 +22,13 @@ export interface ArtifactFileUpdateEvent {
  * final reply pastes the real directive, that registers as a second entry;
  * this live one simply stops updating and is superseded in the panel's
  * ordering (both remain individually selectable in the artifact picker).
+ *
+ * `currentArtifactId` is reasserted on EVERY update, not just the first —
+ * a model that pastes a premature/stale `:::artifact{...}` directive mid-build
+ * mounts its own message-content-driven entry, which unconditionally grabs
+ * focus for itself (`Artifact.tsx`'s mount effect). Without reasserting here,
+ * that one-time steal would permanently leave the panel pointed at the stale
+ * directive while this live entry keeps updating invisibly behind it.
  */
 export default function useArtifactFileUpdateHandler() {
   const setArtifacts = useSetRecoilState(artifactsState);
@@ -33,9 +40,9 @@ export default function useArtifactFileUpdateHandler() {
       const key = `live_${event.relativePath}`;
       const now = Date.now();
 
-      setArtifacts((prevArtifacts) => {
-        const isNew = prevArtifacts?.[key] == null;
-        const nextArtifact: Artifact = {
+      setArtifacts((prevArtifacts) => ({
+        ...prevArtifacts,
+        [key]: {
           id: key,
           identifier: event.identifier,
           title: event.title,
@@ -43,18 +50,10 @@ export default function useArtifactFileUpdateHandler() {
           content: event.content,
           messageId: event.messageId,
           lastUpdateTime: now,
-        };
-
-        if (isNew) {
-          setCurrentArtifactId((prev) => prev ?? key);
-          setArtifactsVisible(true);
-        }
-
-        return {
-          ...prevArtifacts,
-          [key]: nextArtifact,
-        };
-      });
+        } satisfies Artifact,
+      }));
+      setCurrentArtifactId(key);
+      setArtifactsVisible(true);
     },
     [setArtifacts, setCurrentArtifactId, setArtifactsVisible],
   );

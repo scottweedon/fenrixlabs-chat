@@ -1,3 +1,5 @@
+import fs from 'node:fs/promises';
+import path from 'node:path';
 import yaml from 'js-yaml';
 import { Types } from 'mongoose';
 import { logger } from '@librechat/data-schemas';
@@ -2155,71 +2157,62 @@ async function maybeRecordArtifactFile(params: {
   }
 }
 
-/** Matches the exact directive shape `buildArtifactDirective` in
- *  `scripts/artifact-filesystem-server.mjs` produces, to pull the file's raw
- *  content back out of the tool result's human-readable confirmation text. */
-const ARTIFACT_DIRECTIVE_RE = /:::artifact\{[^}]*\}\r?\n(`{4,})\r?\n([\s\S]*?)\r?\n\1\r?\n:::/;
+/** Read-only mount of the same directory `artifact-mcp` writes into — see
+ *  `docker-compose.override.yml`'s `api` service. */
+const ARTIFACT_ROOT_DIR = '/app/generated-artifacts';
 
-function extractDirectiveContent(text: string): string | undefined {
-  const match = ARTIFACT_DIRECTIVE_RE.exec(text);
-  return match ? match[2] : undefined;
+/** Resolves `relativePath` under the shared artifacts volume, rejecting any
+ *  attempt to escape it. Mirrors the MCP server's own safe-path resolver
+ *  (`scripts/artifact-filesystem-server.mjs`), duplicated here since this
+ *  runs in a different process/container with no shared code. */
+function resolveArtifactFilePath(relativePath: string): string | undefined {
+  const candidate = path.resolve(ARTIFACT_ROOT_DIR, relativePath.replace(/^[/\\]+/, ''));
+  if (candidate !== ARTIFACT_ROOT_DIR && !candidate.startsWith(`${ARTIFACT_ROOT_DIR}${path.sep}`)) {
+    return undefined;
+  }
+  return candidate;
 }
 
 /**
  * Opportunistically pushes a live-preview SSE update after a successful
  * `artifact-filesystem` write/patch, so the artifacts panel can render the
  * in-progress build without waiting for the model to finish its turn and
- * paste a directive. Never throws — a live-preview failure must not fail
- * the user's actual tool call.
+ * paste a directive. Reads the file directly off the shared volume rather
+ * than parsing it out of the tool's human-readable confirmation text — that
+ * text is written for the model to read, not as a machine-readable content
+ * channel, and extracting from it was a real, avoidable fragility. Never
+ * throws — a live-preview failure must not fail the user's actual tool call.
  */
-function maybeEmitArtifactFileUpdate(params: {
+async function maybeEmitArtifactFileUpdate(params: {
   toolName: string;
   toolArgs: unknown;
-  toolResultContent: unknown;
   metadata: unknown;
   emitArtifactFileUpdate: ToolExecuteOptions['emitArtifactFileUpdate'];
-}): void {
-  const { toolName, toolArgs, toolResultContent, metadata, emitArtifactFileUpdate } = params;
-  if (!emitArtifactFileUpdate || typeof toolResultContent !== 'string') {
-    logger.info('[ON_TOOL_EXECUTE] Skipping artifact live-update: no emitter or non-string result', {
-      toolName,
-      hasEmitter: !!emitArtifactFileUpdate,
-      resultType: typeof toolResultContent,
-    });
+}): Promise<void> {
+  const { toolName, toolArgs, metadata, emitArtifactFileUpdate } = params;
+  if (!emitArtifactFileUpdate) {
     return;
   }
 
   const [rawToolName, serverName] = splitMCPToolKey(toolName);
   if (serverName !== ARTIFACT_FILESYSTEM_SERVER_NAME || !ARTIFACT_FILESYSTEM_WRITE_TOOLS.has(rawToolName)) {
-    logger.info('[ON_TOOL_EXECUTE] Skipping artifact live-update: not an artifact-filesystem write tool', {
-      toolName,
-      rawToolName,
-      serverName,
-    });
     return;
   }
 
   const relativePath = extractArtifactRelativePath(rawToolName, toolArgs);
   if (!relativePath) {
-    logger.info('[ON_TOOL_EXECUTE] Skipping artifact live-update: could not extract relativePath', {
-      rawToolName,
-    });
     return;
   }
 
   const mode = inferArtifactFileMode(relativePath);
   if (!mode) {
-    logger.info('[ON_TOOL_EXECUTE] Skipping artifact live-update: unrecognized file extension', {
-      relativePath,
-    });
     return;
   }
 
-  const content = extractDirectiveContent(toolResultContent);
-  if (content == null) {
-    logger.info('[ON_TOOL_EXECUTE] Skipping artifact live-update: no directive found in tool result', {
+  const filePath = resolveArtifactFilePath(relativePath);
+  if (!filePath) {
+    logger.warn('[ON_TOOL_EXECUTE] Skipping artifact live-update: relativePath escapes artifact root', {
       relativePath,
-      resultPreview: toolResultContent.slice(0, 200),
     });
     return;
   }
@@ -2227,9 +2220,6 @@ function maybeEmitArtifactFileUpdate(params: {
   const conversationId =
     ((metadata as Record<string, unknown>)?.thread_id as string | undefined) ?? '';
   if (!conversationId) {
-    logger.info('[ON_TOOL_EXECUTE] Skipping artifact live-update: no conversationId in metadata', {
-      relativePath,
-    });
     return;
   }
 
@@ -2237,6 +2227,7 @@ function maybeEmitArtifactFileUpdate(params: {
   const messageId = (metadata as Record<string, unknown>)?.run_id as string | undefined;
 
   try {
+    const content = await fs.readFile(filePath, 'utf8');
     emitArtifactFileUpdate({
       relativePath,
       identifier: title,
@@ -4554,10 +4545,9 @@ export function createToolExecuteHandler(options: ToolExecuteOptions): EventHand
                       recordArtifactFile: options.recordArtifactFile,
                     });
 
-                    maybeEmitArtifactFileUpdate({
+                    await maybeEmitArtifactFileUpdate({
                       toolName: tc.name,
                       toolArgs: foregroundArgs,
-                      toolResultContent: cleanedContent,
                       metadata,
                       emitArtifactFileUpdate: options.emitArtifactFileUpdate,
                     });
