@@ -23,14 +23,14 @@ Use this when the user asks for:
 ## Required behavior
 
 Follow the exact single-file, layered build process (plan → skeleton → marker-based
-`patch_artifact_marker` calls for sections/styles/script) described in your system
-instructions for this mode — this skill only marks that the request qualifies for it.
-Do not restate or deviate from that process here; it is the single source of truth for
-tool names, file layout, and the artifact directive format.
+`patch_artifact_marker_mcp_artifact-filesystem` calls for sections/styles/script) described
+in your system instructions for this mode — this skill only marks that the request qualifies
+for it. Do not restate or deviate from that process here; it is the single source of truth
+for tool names, file layout, and the artifact directive format.
 
 ## Avoid
 
 - dumping large HTML/CSS/JS code blocks into the chat instead of using the filesystem tools
 - inventing files without actually writing them
-- switching to a multi-file layout (`create_artifact_bundle`) unless the user explicitly
-  asks for separate downloadable CSS/JS files
+- switching to a multi-file layout (`create_artifact_bundle_mcp_artifact-filesystem`) unless
+  the user explicitly asks for separate downloadable CSS/JS files

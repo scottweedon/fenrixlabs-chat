@@ -75,7 +75,7 @@ function looksCompleteHtml(content) {
 }
 
 const INCOMPLETE_HTML_WARNING =
-  '\n\nWARNING: this file does not look complete (missing a closing </html>, or an unclosed <script>/<style> block) — it may have been cut off. If you have more content to add, call patch_artifact_file now to append it before ending your reply.';
+  '\n\nWARNING: this file does not look complete (missing a closing </html>, or an unclosed <script>/<style> block) — it may have been cut off. If you have more content to add, call patch_artifact_file_mcp_artifact-filesystem now to append it before ending your reply.';
 
 const SCRIPT_SRC_RE = /<script\b[^>]*\ssrc\s*=\s*["']([^"']+)["'][^>]*>/gi;
 const LINK_HREF_RE = /<link\b[^>]*\shref\s*=\s*["']([^"']+)["'][^>]*>/gi;
@@ -118,7 +118,7 @@ function missingAssetsWarning(missing) {
   if (missing.length === 0) {
     return '';
   }
-  return `\n\nWARNING: this file links to local file(s) that do not exist yet: ${missing.join(', ')}. Either write them now (write_artifact_file/patch_artifact_file), or inline that content directly into this HTML with <style>/<script> tags, before ending your reply.`;
+  return `\n\nWARNING: this file links to local file(s) that do not exist yet: ${missing.join(', ')}. Either write them now (write_artifact_file_mcp_artifact-filesystem/patch_artifact_file_mcp_artifact-filesystem), or inline that content directly into this HTML with <style>/<script> tags, before ending your reply.`;
 }
 
 const SECTION_MARKER_RE = /<!--\s*SECTION:[^>]*-->/gi;
@@ -155,6 +155,48 @@ function normalizeArtifactName(name) {
     .replace(/[^a-z0-9._-]+/g, '-')
     .replace(/-+/g, '-')
     .replace(/^-|-$/g, '');
+}
+
+/**
+ * Every tool's zod schema below marks its params `.optional()` even where
+ * logically required — that keeps the MCP SDK's own upfront schema
+ * validation from rejecting a call outright (with a generic "did not match
+ * expected schema" message carrying no detail) when the model omits a field
+ * or uses the wrong key name. These helpers do the real requiredness/type
+ * check ourselves, inside the handler, so the model gets back a specific,
+ * actionable message — the exact field name, what was expected, and what it
+ * actually sent — instead of a dead end it has to guess its way out of.
+ */
+function describeReceived(value) {
+  return value === undefined ? 'nothing (the field was omitted)' : JSON.stringify(value);
+}
+
+function requireString(value, paramName) {
+  if (typeof value !== 'string') {
+    throw new Error(
+      `\`${paramName}\` is required and must be a string. You passed ${describeReceived(value)}.`,
+    );
+  }
+  return value;
+}
+
+function requirePositiveInt(value, paramName) {
+  if (typeof value !== 'number' || !Number.isInteger(value) || value <= 0) {
+    throw new Error(
+      `\`${paramName}\` is required and must be a positive integer. You passed ${describeReceived(value)}.`,
+    );
+  }
+  return value;
+}
+
+function optionalString(value, paramName) {
+  if (value === undefined) {
+    return undefined;
+  }
+  if (typeof value !== 'string') {
+    throw new Error(`\`${paramName}\`, if provided, must be a string. You passed ${describeReceived(value)}.`);
+  }
+  return value;
 }
 
 /**
@@ -217,9 +259,10 @@ function createArtifactFilesystemServer(rootArg) {
     'list_artifact_files',
     'List files and folders under the generated-artifacts root or one artifact subdirectory.',
     {
-      relative_path: z.string().optional().default(''),
+      relative_path: z.string().optional(),
     },
-    async ({ relative_path }) => {
+    async ({ relative_path: rawRelativePath }) => {
+      const relative_path = optionalString(rawRelativePath, 'relative_path') ?? '';
       const target = resolveSafePath(relative_path);
       const stat = await statOrNull(target);
 
@@ -244,11 +287,12 @@ function createArtifactFilesystemServer(rootArg) {
 
   server.tool(
     'read_artifact_file',
-    'Read a UTF-8 text file from generated-artifacts, with line numbers. Use these numbers with patch_artifact_file to make targeted edits instead of rewriting the whole file.',
+    'Read a UTF-8 text file from generated-artifacts, with line numbers. Use these numbers with patch_artifact_file_mcp_artifact-filesystem to make targeted edits instead of rewriting the whole file.',
     {
-      relative_path: z.string(),
+      relative_path: z.string().optional(),
     },
-    async ({ relative_path }) => {
+    async ({ relative_path: rawRelativePath }) => {
+      const relative_path = requireString(rawRelativePath, 'relative_path');
       const target = resolveSafePath(relative_path);
       const stat = await statOrNull(target);
 
@@ -330,10 +374,12 @@ function createArtifactFilesystemServer(rootArg) {
     'write_artifact_file',
     'Create or overwrite a UTF-8 text file under generated-artifacts.',
     {
-      relative_path: z.string(),
-      content: z.string(),
+      relative_path: z.string().optional(),
+      content: z.string().optional(),
     },
-    async ({ relative_path, content }) => {
+    async ({ relative_path: rawRelativePath, content: rawContent }) => {
+      const relative_path = requireString(rawRelativePath, 'relative_path');
+      const content = requireString(rawContent, 'content');
       const target = resolveSafePath(relative_path);
       await fs.mkdir(path.dirname(target), { recursive: true });
       await fs.writeFile(target, content, 'utf8');
@@ -346,12 +392,23 @@ function createArtifactFilesystemServer(rootArg) {
     'patch_artifact_file',
     'Replace a range of lines in an existing UTF-8 text file with new content, without rewriting the whole file. Use read_artifact_file first to see current line numbers. 1-indexed, inclusive range: to insert before line N without removing anything, use start_line = end_line = N. To delete lines, pass new_content = "".',
     {
-      relative_path: z.string(),
-      start_line: z.number().int().positive(),
-      end_line: z.number().int().positive(),
-      new_content: z.string(),
+      relative_path: z.string().optional(),
+      start_line: z.number().optional(),
+      end_line: z.number().optional(),
+      new_content: z.string().optional(),
     },
-    async ({ relative_path, start_line, end_line, new_content }) => {
+    async ({
+      relative_path: rawRelativePath,
+      start_line: rawStartLine,
+      end_line: rawEndLine,
+      new_content: rawNewContent,
+    }) => {
+      const relative_path = requireString(rawRelativePath, 'relative_path');
+      const start_line = requirePositiveInt(rawStartLine, 'start_line');
+      const end_line = requirePositiveInt(rawEndLine, 'end_line');
+      // Empty string is a valid, meaningful value here (deletes the range) —
+      // only reject a genuinely missing/non-string new_content.
+      const new_content = requireString(rawNewContent, 'new_content');
       const target = resolveSafePath(relative_path);
       const stat = await statOrNull(target);
 
@@ -393,11 +450,14 @@ function createArtifactFilesystemServer(rootArg) {
     'patch_artifact_marker',
     'Replace a unique marker string (e.g. a "<!-- SECTION: hero -->" placeholder comment, or a "/* TODO: styles */" comment) with new content — no need to read the file or know line numbers first. The marker must appear in the file exactly once; use this for filling in the placeholders a skeleton file was written with.',
     {
-      relative_path: z.string(),
-      marker: z.string(),
-      new_content: z.string(),
+      relative_path: z.string().optional(),
+      marker: z.string().optional(),
+      new_content: z.string().optional(),
     },
-    async ({ relative_path, marker, new_content }) => {
+    async ({ relative_path: rawRelativePath, marker: rawMarker, new_content: rawNewContent }) => {
+      const relative_path = requireString(rawRelativePath, 'relative_path');
+      const marker = requireString(rawMarker, 'marker');
+      const new_content = requireString(rawNewContent, 'new_content');
       const target = resolveSafePath(relative_path);
       const stat = await statOrNull(target);
 
@@ -415,7 +475,7 @@ function createArtifactFilesystemServer(rootArg) {
       }
       if (occurrences > 1) {
         throw new Error(
-          `Marker is ambiguous in ${relative_path} — found ${occurrences} occurrences of ${JSON.stringify(marker)}. Use patch_artifact_file with explicit line numbers instead.`,
+          `Marker is ambiguous in ${relative_path} — found ${occurrences} occurrences of ${JSON.stringify(marker)}. Use patch_artifact_file_mcp_artifact-filesystem with explicit line numbers instead.`,
         );
       }
 
@@ -430,12 +490,21 @@ function createArtifactFilesystemServer(rootArg) {
     'create_artifact_bundle',
     'Create a new artifact folder with index.html and optional companion files.',
     {
-      artifact_name: z.string(),
-      index_html: z.string(),
+      artifact_name: z.string().optional(),
+      index_html: z.string().optional(),
       styles_css: z.string().optional(),
       script_js: z.string().optional(),
     },
-    async ({ artifact_name, index_html, styles_css, script_js }) => {
+    async ({
+      artifact_name: rawArtifactName,
+      index_html: rawIndexHtml,
+      styles_css: rawStylesCss,
+      script_js: rawScriptJs,
+    }) => {
+      const artifact_name = requireString(rawArtifactName, 'artifact_name');
+      const index_html = requireString(rawIndexHtml, 'index_html');
+      const styles_css = optionalString(rawStylesCss, 'styles_css');
+      const script_js = optionalString(rawScriptJs, 'script_js');
       const safeName = normalizeArtifactName(artifact_name);
 
       if (!safeName) {
@@ -493,10 +562,11 @@ function createArtifactFilesystemServer(rootArg) {
     'delete_artifact_path',
     'Delete a file or directory tree under generated-artifacts.',
     {
-      relative_path: z.string(),
+      relative_path: z.string().optional(),
     },
-    async ({ relative_path }) => {
-      if (!relative_path || relative_path === '.' || relative_path === '/') {
+    async ({ relative_path: rawRelativePath }) => {
+      const relative_path = requireString(rawRelativePath, 'relative_path');
+      if (relative_path === '.' || relative_path === '/') {
         throw new Error('Refusing to delete the artifact root');
       }
 
