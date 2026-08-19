@@ -408,12 +408,11 @@ export default function ToolCallGroup({
       >
         {shouldRenderBody && (
           <div className="overflow-hidden" ref={expandRef}>
-            {/** `border-l` gives the batch a single connected line running
-             *  through every step, reading as one sequence rather than a
-             *  stack of unrelated rows — each step's own icon still sits
-             *  inline via `renderPart`/`ProgressText`, just offset from the
-             *  line by the same `pl-4` the rows always had. */}
-            <div className="border-l border-border-light py-0.5 pl-4">
+            {/** No border here — this group renders inside `ContentParts`'
+             *  shared step-rail wrapper (which already draws one continuous
+             *  line across the whole run of steps, tool-group included), so
+             *  a second border/indent here would double up. */}
+            <div className="py-0.5 pl-4">
               {parts.map(({ part, idx }) =>
                 renderPart(part, idx, isLast && idx === lastContentIdx, handleToolExpand),
               )}

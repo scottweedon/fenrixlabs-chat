@@ -473,42 +473,92 @@ const ContentParts = memo(function ContentParts({
             <EmptyText />
           </Container>
         )}
-        {groupedParts.flatMap((group) => {
-          const firstIdx = group.type === 'single' ? group.part.idx : (group.parts[0]?.idx ?? -1);
-          const nodes: ReactElement[] = [];
-          const attribution = renderResumeAttribution(firstIdx);
-          if (attribution != null) {
-            nodes.push(attribution);
+        {(() => {
+          /** Whether a group reads as one "step" in the activity timeline
+           *  (reasoning, a tool call, or an activity label) versus plain
+           *  text. Runs of consecutive steps — even when each renders as its
+           *  own standalone entry rather than a batched `ToolCallGroup` (e.g.
+           *  a reasoning blurb between every individual tool call) — share
+           *  one connecting rail; text breaks it. */
+          const isStepGroup = (group: (typeof groupedParts)[number]): boolean => {
+            if (group.type !== 'single') {
+              return true;
+            }
+            const partType = group.part.part?.type;
+            return (
+              partType === ContentTypes.TOOL_CALL ||
+              partType === ContentTypes.THINK ||
+              partType === ContentTypes.ACTIVITY_LABEL
+            );
+          };
+
+          const renderedGroups = groupedParts.map((group) => {
+            const firstIdx =
+              group.type === 'single' ? group.part.idx : (group.parts[0]?.idx ?? -1);
+            const nodes: ReactElement[] = [];
+            const attribution = renderResumeAttribution(firstIdx);
+            if (attribution != null) {
+              nodes.push(attribution);
+            }
+            if (group.type === 'single') {
+              const { part, idx } = group.part;
+              nodes.push(renderPart(part, idx, idx === lastContentIdx));
+              return { isStep: isStepGroup(group), nodes };
+            }
+            const { groupId } = group;
+            nodes.push(
+              <ToolCallGroup
+                key={`tool-group-${groupId}`}
+                parts={group.parts}
+                isSubmitting={effectiveIsSubmitting}
+                /** The label part is CONSUMED into the header, not listed in
+                 *  `parts` — a filled label at the content tail must still
+                 *  mark its group as last or nothing holds the streaming
+                 *  cursor until the next delta. */
+                isLast={
+                  group.parts.some((p) => p.idx === lastContentIdx) ||
+                  group.labelPart?.idx === lastContentIdx
+                }
+                renderPart={renderGroupedPart}
+                lastContentIdx={lastContentIdx}
+                groupAttachments={group.groupAttachments}
+                initialExpansionState={toolGroupExpansionRef.current.get(groupId)}
+                onExpansionChange={(state) => handleGroupExpansionChange(groupId, state)}
+                labelPart={group.labelPart}
+              />,
+            );
+            return { isStep: isStepGroup(group), nodes };
+          });
+
+          const output: ReactElement[] = [];
+          let runNodes: ReactElement[] = [];
+          const flushRun = () => {
+            if (runNodes.length === 0) {
+              return;
+            }
+            output.push(
+              <div
+                key={`step-rail-${output.length}`}
+                className="relative border-l border-border-light py-0.5 pl-4"
+              >
+                {runNodes}
+              </div>,
+            );
+            runNodes = [];
+          };
+
+          for (const { isStep, nodes } of renderedGroups) {
+            if (isStep) {
+              runNodes.push(...nodes);
+              continue;
+            }
+            flushRun();
+            output.push(...nodes);
           }
-          if (group.type === 'single') {
-            const { part, idx } = group.part;
-            nodes.push(renderPart(part, idx, idx === lastContentIdx));
-            return nodes;
-          }
-          const { groupId } = group;
-          nodes.push(
-            <ToolCallGroup
-              key={`tool-group-${groupId}`}
-              parts={group.parts}
-              isSubmitting={effectiveIsSubmitting}
-              /** The label part is CONSUMED into the header, not listed in
-               *  `parts` — a filled label at the content tail must still
-               *  mark its group as last or nothing holds the streaming
-               *  cursor until the next delta. */
-              isLast={
-                group.parts.some((p) => p.idx === lastContentIdx) ||
-                group.labelPart?.idx === lastContentIdx
-              }
-              renderPart={renderGroupedPart}
-              lastContentIdx={lastContentIdx}
-              groupAttachments={group.groupAttachments}
-              initialExpansionState={toolGroupExpansionRef.current.get(groupId)}
-              onExpansionChange={(state) => handleGroupExpansionChange(groupId, state)}
-              labelPart={group.labelPart}
-            />,
-          );
-          return nodes;
-        })}
+          flushRun();
+
+          return output;
+        })()}
       </SearchContext.Provider>
     </ApprovalProvider>
   );
