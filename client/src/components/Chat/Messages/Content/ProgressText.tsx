@@ -98,7 +98,12 @@ export default function ProgressText({
         aria-expanded={hasInput ? isExpanded : undefined}
       >
         {icon}
-        <span className={cn(showShimmer ? 'shimmer' : '', 'min-w-0 truncate font-medium')}>
+        <span
+          className={cn(
+            showShimmer ? 'shimmer text-text-primary' : 'text-text-secondary',
+            'min-w-0 truncate font-medium',
+          )}
+        >
           {text}
         </span>
         {subtitle && <span className="font-normal text-text-secondary">{subtitle}</span>}
