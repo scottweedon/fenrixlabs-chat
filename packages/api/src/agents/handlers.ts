@@ -2181,32 +2181,55 @@ function maybeEmitArtifactFileUpdate(params: {
 }): void {
   const { toolName, toolArgs, toolResultContent, metadata, emitArtifactFileUpdate } = params;
   if (!emitArtifactFileUpdate || typeof toolResultContent !== 'string') {
+    logger.info('[ON_TOOL_EXECUTE] Skipping artifact live-update: no emitter or non-string result', {
+      toolName,
+      hasEmitter: !!emitArtifactFileUpdate,
+      resultType: typeof toolResultContent,
+    });
     return;
   }
 
   const [rawToolName, serverName] = splitMCPToolKey(toolName);
   if (serverName !== ARTIFACT_FILESYSTEM_SERVER_NAME || !ARTIFACT_FILESYSTEM_WRITE_TOOLS.has(rawToolName)) {
+    logger.info('[ON_TOOL_EXECUTE] Skipping artifact live-update: not an artifact-filesystem write tool', {
+      toolName,
+      rawToolName,
+      serverName,
+    });
     return;
   }
 
   const relativePath = extractArtifactRelativePath(rawToolName, toolArgs);
   if (!relativePath) {
+    logger.info('[ON_TOOL_EXECUTE] Skipping artifact live-update: could not extract relativePath', {
+      rawToolName,
+    });
     return;
   }
 
   const mode = inferArtifactFileMode(relativePath);
   if (!mode) {
+    logger.info('[ON_TOOL_EXECUTE] Skipping artifact live-update: unrecognized file extension', {
+      relativePath,
+    });
     return;
   }
 
   const content = extractDirectiveContent(toolResultContent);
   if (content == null) {
+    logger.info('[ON_TOOL_EXECUTE] Skipping artifact live-update: no directive found in tool result', {
+      relativePath,
+      resultPreview: toolResultContent.slice(0, 200),
+    });
     return;
   }
 
   const conversationId =
     ((metadata as Record<string, unknown>)?.thread_id as string | undefined) ?? '';
   if (!conversationId) {
+    logger.info('[ON_TOOL_EXECUTE] Skipping artifact live-update: no conversationId in metadata', {
+      relativePath,
+    });
     return;
   }
 
@@ -2222,6 +2245,12 @@ function maybeEmitArtifactFileUpdate(params: {
       content,
       conversationId,
       messageId,
+    });
+    logger.info('[ON_TOOL_EXECUTE] Emitted artifact live-update', {
+      relativePath,
+      mode,
+      conversationId,
+      contentLength: content.length,
     });
   } catch (error) {
     logger.warn('[ON_TOOL_EXECUTE] Failed to emit artifact live-update:', error);
