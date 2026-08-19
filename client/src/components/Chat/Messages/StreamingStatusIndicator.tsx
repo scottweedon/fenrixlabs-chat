@@ -160,10 +160,10 @@ export default function StreamingStatusIndicator() {
 
   return (
     <div
-      className="mt-1 flex h-[31px] items-center gap-2 text-xs text-text-secondary"
+      className="mt-1 flex h-[31px] items-center gap-2 text-base text-text-secondary"
       role="status"
     >
-      <Spinner className="size-3.5" />
+      <Spinner className="size-4" />
       <span aria-hidden="true">
         {verb.slice(0, typedLength)}&hellip;
       </span>
