@@ -84,10 +84,24 @@ export default function ProgressText({
 
   return (
     <Wrapper popover={popover}>
+      {/** Pulled onto the step-rail's connecting line (the enclosing
+       *  `ContentParts` wrapper's `pl-4`) rather than sitting inline before
+       *  the text, so it reads as a dot marker on the timeline instead of a
+       *  floating icon. The opaque background masks the line passing behind
+       *  it. `-left-4` only lands correctly when this row is a direct
+       *  descendant of that rail wrapper (true for every current caller). */}
+      {icon && (
+        <span
+          className="absolute -left-4 top-1/2 z-10 flex h-4 w-4 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-surface-primary"
+          aria-hidden="true"
+        >
+          {icon}
+        </span>
+      )}
       <button
         type="button"
         className={cn(
-          'inline-flex w-full items-center gap-2',
+          'inline-flex w-full items-center gap-2 pl-6',
           hasInput
             ? 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-heavy'
             : 'pointer-events-none',
@@ -97,7 +111,6 @@ export default function ProgressText({
         onClick={hasInput ? onClick : undefined}
         aria-expanded={hasInput ? isExpanded : undefined}
       >
-        {icon}
         <span
           className={cn(
             showShimmer ? 'shimmer text-text-primary' : 'text-text-secondary',

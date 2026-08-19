@@ -539,7 +539,7 @@ const ContentParts = memo(function ContentParts({
             output.push(
               <div
                 key={`step-rail-${output.length}`}
-                className="relative border-l border-border-light py-0.5 pl-4"
+                className="relative my-3 border-l border-border-light py-1 pl-4"
               >
                 {runNodes}
               </div>,
